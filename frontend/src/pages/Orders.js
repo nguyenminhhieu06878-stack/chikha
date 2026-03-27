@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useQuery } from 'react-query';
 import { Link } from 'react-router-dom';
 import { Package, Eye, Calendar, CreditCard, MapPin, Phone } from 'lucide-react';
-import { ordersAPI, formatPrice, formatDateTime } from '../services/api';
+import { ordersAPI, formatPrice, formatDateTime, getProductImageUrl } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 const Orders = () => {
@@ -102,7 +102,7 @@ const Orders = () => {
                       </div>
                       <div>
                         <h3 className="text-lg font-semibold text-gray-900">
-                          Đơn hàng ORD{order.id.slice(-8).toUpperCase()}
+                          Đơn hàng ORD{String(order.id).padStart(8, '0')}
                         </h3>
                         <div className="flex items-center space-x-4 text-sm text-gray-500 mt-1">
                           <span className="flex items-center">
@@ -113,7 +113,7 @@ const Orders = () => {
                             <CreditCard className="w-4 h-4 mr-1" />
                             {order.payment_method === 'cod' ? 'Thanh toán khi nhận hàng' : 
                              order.payment_method === 'bank_transfer' ? 'Chuyển khoản' : 
-                             order.payment_method.toUpperCase()}
+                             order.payment_method ? order.payment_method.toUpperCase() : 'COD'}
                           </span>
                         </div>
                       </div>
@@ -138,20 +138,20 @@ const Orders = () => {
                       {order.order_items?.slice(0, 3).map((item) => (
                         <div key={item.id} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
                           <img
-                            src={item.products?.images?.[0] || 'https://via.placeholder.com/60'}
-                            alt={item.products?.name}
+                            src={item.image_url || 'https://via.placeholder.com/60'}
+                            alt={item.product_name || 'Product'}
                             className="w-16 h-16 object-cover rounded-lg"
                           />
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium text-gray-900 truncate">
-                              {item.products?.name}
+                              {item.product_name}
                             </p>
                             <p className="text-sm text-gray-500">
                               Số lượng: {item.quantity} × {formatPrice(item.price)}
                             </p>
                           </div>
                           <p className="text-sm font-medium text-gray-900">
-                            {formatPrice(item.total || (item.price * item.quantity))}
+                            {formatPrice(item.price * item.quantity)}
                           </p>
                         </div>
                       ))}
@@ -173,20 +173,20 @@ const Orders = () => {
                           Địa chỉ giao hàng
                         </h4>
                         <div className="text-sm text-gray-700 space-y-1">
-                          <p className="font-medium">{order.shipping_address?.full_name}</p>
-                          <p className="flex items-center">
-                            <Phone className="w-3 h-3 mr-1 text-gray-400" />
-                            {order.shipping_address?.phone}
-                          </p>
-                          <p>{order.shipping_address?.address_line_1}</p>
-                          {order.shipping_address?.address_line_2 && (
-                            <p>{order.shipping_address.address_line_2}</p>
+                          {order.shipping_phone && (
+                            <p className="flex items-center font-medium">
+                              <Phone className="w-3 h-3 mr-1 text-gray-400" />
+                              {order.shipping_phone}
+                            </p>
                           )}
-                          <p>
-                            {order.shipping_address?.city}, {order.shipping_address?.state} {order.shipping_address?.postal_code}
-                          </p>
-                          {order.shipping_address?.country && order.shipping_address.country !== 'Vietnam' && (
-                            <p>{order.shipping_address.country}</p>
+                          {order.shipping_address && (
+                            <p className="whitespace-pre-line">{order.shipping_address}</p>
+                          )}
+                          {order.shipping_city && (
+                            <p className="font-medium">{order.shipping_city}</p>
+                          )}
+                          {!order.shipping_address && !order.shipping_city && (
+                            <p className="text-gray-400 italic">Chưa có địa chỉ</p>
                           )}
                         </div>
                       </div>

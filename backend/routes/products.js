@@ -1,48 +1,20 @@
 const express = require('express');
-const { createClient } = require('@supabase/supabase-js');
-const { client: esClient } = require('../config/elasticsearch');
+const { db } = require('../config/database');
 const { authenticateToken, requireAdmin, optionalAuth } = require('../middleware/auth');
 const Joi = require('joi');
 
 const router = express.Router();
 
-// Initialize Supabase clients
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
-const supabaseAdmin = createClient(
-  process.env.SUPABASE_URL, 
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY
-);
-
 // Validation schema
 const productSchema = Joi.object({
   name: Joi.string().min(2).max(255).required(),
-  description: Joi.string().optional(),
+  description: Joi.string().optional().allow(''),
   price: Joi.number().positive().required(),
-  discount_price: Joi.number().positive().optional(),
-  category_id: Joi.string().uuid().required(),
+  category_id: Joi.number().integer().required(),
   stock_quantity: Joi.number().integer().min(0).required(),
-  images: Joi.array().items(Joi.string().uri()).optional()
+  image_url: Joi.string().uri().optional().allow(''),
+  is_featured: Joi.boolean().optional()
 });
-
-// Helper function to sync product to ElasticSearch
-const syncProductToES = async (product, categoryName) => {
-  try {
-    await esClient.index({
-      index: 'products',
-      id: product.id,
-      body: {
-        ...product,
-        category_name: categoryName,
-        suggest: {
-          input: [product.name, categoryName],
-          weight: product.average_rating * 10 + product.total_reviews
-        }
-      }
-    });
-  } catch (error) {
-    console.error('ElasticSearch sync error:', error);
-  }
-};
 
 // @route   GET /api/products
 // @desc    Get all products with pagination and filters
@@ -55,7 +27,7 @@ router.get('/', optionalAuth, async (req, res) => {
       category,
       min_price,
       max_price,
-      min_rating,
+      is_featured,
       sort_by = 'created_at',
       sort_order = 'desc'
     } = req.query;
@@ -63,46 +35,71 @@ router.get('/', optionalAuth, async (req, res) => {
     const offset = (page - 1) * limit;
 
     // Build query
-    let query = supabaseAdmin
-      .from('products')
-      .select(`
-        *,
-        categories!inner(name, slug)
-      `);
+    let query = `
+      SELECT p.*, c.name as category_name, c.slug as category_slug
+      FROM products p
+      LEFT JOIN categories c ON p.category_id = c.id
+      WHERE 1=1
+    `;
+    const params = [];
 
     // Apply filters
     if (category) {
-      query = query.eq('categories.slug', category);
+      query += ` AND c.slug = ?`;
+      params.push(category);
     }
     if (min_price) {
-      query = query.gte('price', min_price);
+      query += ` AND p.price >= ?`;
+      params.push(min_price);
     }
     if (max_price) {
-      query = query.lte('price', max_price);
+      query += ` AND p.price <= ?`;
+      params.push(max_price);
     }
-    if (min_rating) {
-      query = query.gte('average_rating', min_rating);
+    if (is_featured !== undefined) {
+      query += ` AND p.is_featured = ?`;
+      params.push(is_featured === 'true' ? 1 : 0);
     }
 
     // Apply sorting
-    query = query.order(sort_by, { ascending: sort_order === 'asc' });
+    const validSortColumns = ['created_at', 'price', 'name'];
+    const sortColumn = validSortColumns.includes(sort_by) ? sort_by : 'created_at';
+    const sortDir = sort_order === 'asc' ? 'ASC' : 'DESC';
+    query += ` ORDER BY p.${sortColumn} ${sortDir}`;
 
     // Apply pagination
-    query = query.range(offset, offset + limit - 1);
+    query += ` LIMIT ? OFFSET ?`;
+    params.push(parseInt(limit), offset);
 
-    const { data: products, error, count } = await query;
+    const products = db.prepare(query).all(...params);
 
-    if (error) {
-      return res.status(400).json({
-        success: false,
-        error: error.message
-      });
+    // Get total count
+    let countQuery = `
+      SELECT COUNT(*) as total
+      FROM products p
+      LEFT JOIN categories c ON p.category_id = c.id
+      WHERE 1=1
+    `;
+    const countParams = [];
+    
+    if (category) {
+      countQuery += ` AND c.slug = ?`;
+      countParams.push(category);
+    }
+    if (min_price) {
+      countQuery += ` AND p.price >= ?`;
+      countParams.push(min_price);
+    }
+    if (max_price) {
+      countQuery += ` AND p.price <= ?`;
+      countParams.push(max_price);
+    }
+    if (is_featured !== undefined) {
+      countQuery += ` AND p.is_featured = ?`;
+      countParams.push(is_featured === 'true' ? 1 : 0);
     }
 
-    // Get total count for pagination
-    const { count: totalCount } = await supabaseAdmin
-      .from('products')
-      .select('*', { count: 'exact', head: true });
+    const { total } = db.prepare(countQuery).get(...countParams);
 
     res.json({
       success: true,
@@ -110,8 +107,8 @@ router.get('/', optionalAuth, async (req, res) => {
       pagination: {
         current_page: parseInt(page),
         per_page: parseInt(limit),
-        total: totalCount,
-        total_pages: Math.ceil(totalCount / limit)
+        total,
+        total_pages: Math.ceil(total / limit)
       }
     });
 
@@ -125,42 +122,63 @@ router.get('/', optionalAuth, async (req, res) => {
 });
 
 // @route   GET /api/products/:id
-// @desc    Get single product
+// @desc    Get single product with related products
 // @access  Public
 router.get('/:id', optionalAuth, async (req, res) => {
   try {
     const { id } = req.params;
 
-    const { data: product, error } = await supabaseAdmin
-      .from('products')
-      .select(`
-        *,
-        categories(name, slug)
-      `)
-      .eq('id', id)
-      .single();
+    const product = db.prepare(`
+      SELECT p.*, c.name as category_name, c.slug as category_slug
+      FROM products p
+      LEFT JOIN categories c ON p.category_id = c.id
+      WHERE p.id = ?
+    `).get(id);
 
-    if (error || !product) {
+    if (!product) {
       return res.status(404).json({
         success: false,
         error: 'Product not found'
       });
     }
 
-    // Log user activity for recommendations
-    if (req.user) {
-      await supabaseAdmin
-        .from('user_activity')
-        .insert({
-          user_id: req.user.id,
-          product_id: id,
-          action_type: 'view'
-        });
-    }
+    // Get average rating and review count
+    const stats = db.prepare(`
+      SELECT 
+        AVG(rating) as average_rating,
+        COUNT(*) as review_count
+      FROM reviews
+      WHERE product_id = ?
+    `).get(id);
+
+    product.average_rating = stats.average_rating || 0;
+    product.review_count = stats.review_count || 0;
+    product.total_reviews = stats.review_count || 0;
+
+    // Get related products (same category, different product)
+    const priceMin = product.price * 0.7;
+    const priceMax = product.price * 1.3;
+
+    const relatedProducts = db.prepare(`
+      SELECT p.*, c.name as category_name, c.slug as category_slug,
+             (SELECT AVG(rating) FROM reviews WHERE product_id = p.id) as average_rating,
+             (SELECT COUNT(*) FROM reviews WHERE product_id = p.id) as review_count
+      FROM products p
+      LEFT JOIN categories c ON p.category_id = c.id
+      WHERE p.category_id = ? 
+        AND p.id != ? 
+        AND p.price BETWEEN ? AND ?
+        AND p.stock_quantity > 0
+      ORDER BY RANDOM()
+      LIMIT 4
+    `).all(product.category_id, id, priceMin, priceMax);
 
     res.json({
       success: true,
-      data: product
+      data: {
+        ...product,
+        related_products: relatedProducts
+      }
     });
 
   } catch (error) {
@@ -187,12 +205,7 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
     }
 
     // Check if category exists
-    const { data: category } = await supabaseAdmin
-      .from('categories')
-      .select('name')
-      .eq('id', value.category_id)
-      .single();
-
+    const category = db.prepare('SELECT id FROM categories WHERE id = ?').get(value.category_id);
     if (!category) {
       return res.status(400).json({
         success: false,
@@ -200,22 +213,29 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
       });
     }
 
+    // Generate slug from name
+    const slug = value.name.toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
+
     // Create product
-    const { data: product, error: createError } = await supabaseAdmin
-      .from('products')
-      .insert(value)
-      .select()
-      .single();
+    const insert = db.prepare(`
+      INSERT INTO products (name, slug, description, price, category_id, stock_quantity, image_url, is_featured)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `);
 
-    if (createError) {
-      return res.status(400).json({
-        success: false,
-        error: createError.message
-      });
-    }
+    const result = insert.run(
+      value.name,
+      slug,
+      value.description || '',
+      value.price,
+      value.category_id,
+      value.stock_quantity,
+      value.image_url || '',
+      value.is_featured ? 1 : 0
+    );
 
-    // Sync to ElasticSearch
-    await syncProductToES(product, category.name);
+    const product = db.prepare('SELECT * FROM products WHERE id = ?').get(result.lastInsertRowid);
 
     res.status(201).json({
       success: true,
@@ -248,26 +268,41 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
       });
     }
 
-    // Update product
-    const { data: product, error: updateError } = await supabaseAdmin
-      .from('products')
-      .update(value)
-      .eq('id', id)
-      .select(`
-        *,
-        categories(name)
-      `)
-      .single();
-
-    if (updateError || !product) {
+    // Check if product exists
+    const existing = db.prepare('SELECT id FROM products WHERE id = ?').get(id);
+    if (!existing) {
       return res.status(404).json({
         success: false,
-        error: 'Product not found or update failed'
+        error: 'Product not found'
       });
     }
 
-    // Sync to ElasticSearch
-    await syncProductToES(product, product.categories.name);
+    // Generate slug from name
+    const slug = value.name.toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
+
+    // Update product
+    const update = db.prepare(`
+      UPDATE products 
+      SET name = ?, slug = ?, description = ?, price = ?, category_id = ?, 
+          stock_quantity = ?, image_url = ?, is_featured = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `);
+
+    update.run(
+      value.name,
+      slug,
+      value.description || '',
+      value.price,
+      value.category_id,
+      value.stock_quantity,
+      value.image_url || '',
+      value.is_featured ? 1 : 0,
+      id
+    );
+
+    const product = db.prepare('SELECT * FROM products WHERE id = ?').get(id);
 
     res.json({
       success: true,
@@ -291,28 +326,17 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Delete product
-    const { error } = await supabaseAdmin
-      .from('products')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
+    // Check if product exists
+    const existing = db.prepare('SELECT id FROM products WHERE id = ?').get(id);
+    if (!existing) {
       return res.status(404).json({
         success: false,
         error: 'Product not found'
       });
     }
 
-    // Remove from ElasticSearch
-    try {
-      await esClient.delete({
-        index: 'products',
-        id: id
-      });
-    } catch (esError) {
-      console.error('ElasticSearch delete error:', esError);
-    }
+    // Delete product
+    db.prepare('DELETE FROM products WHERE id = ?').run(id);
 
     res.json({
       success: true,

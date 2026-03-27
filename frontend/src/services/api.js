@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { PLACEHOLDER_IMAGES } from '../utils/placeholder';
 
 // Create axios instance
 const api = axios.create({
@@ -62,7 +63,7 @@ export const categoriesAPI = {
 // Search API
 export const searchAPI = {
   search: (params) => api.get('/search', { params }),
-  getSuggestions: (query) => api.get('/search/suggestions', { params: { q: query } }),
+  getSuggestions: (query) => api.get('/search/suggest', { params: { q: query } }),
   getPopularTerms: () => api.get('/search/popular'),
 };
 
@@ -106,8 +107,36 @@ export const recommendationsAPI = {
   trackView: (productId) => api.post('/recommendations/track-view', { product_id: productId }),
 };
 
+// Addresses API
+export const addressesAPI = {
+  getAddresses: () => api.get('/addresses'),
+  getAddress: (id) => api.get(`/addresses/${id}`),
+  createAddress: (data) => api.post('/addresses', data),
+  updateAddress: (id, data) => api.put(`/addresses/${id}`, data),
+  deleteAddress: (id) => api.delete(`/addresses/${id}`),
+  setDefaultAddress: (id) => api.put(`/addresses/${id}/default`),
+};
+
+// Wishlist API
+export const wishlistAPI = {
+  getWishlist: () => api.get('/wishlist'),
+  addToWishlist: (productId) => api.post('/wishlist', { product_id: productId }),
+  removeFromWishlist: (productId) => api.delete(`/wishlist/${productId}`),
+  checkWishlist: (productId) => api.get(`/wishlist/check/${productId}`),
+};
+
 // Utility functions
+// Helper function to get product image URL (handles both SQLite and Supabase formats)
+export const getProductImageUrl = (product, placeholder = PLACEHOLDER_IMAGES.product) => {
+  if (!product) return placeholder;
+  // SQLite returns image_url (string), Supabase returns images (array)
+  return product.image_url || product.images?.[0] || placeholder;
+};
+
 export const formatPrice = (price) => {
+  if (price === null || price === undefined || isNaN(price)) {
+    return '0 ₫';
+  }
   return new Intl.NumberFormat('vi-VN', {
     style: 'currency',
     currency: 'VND',
@@ -134,12 +163,46 @@ export const formatDateTime = (date) => {
 
 // Admin API
 export const adminAPI = {
-  getDashboard: () => api.get('/admin/dashboard'),
-  getUsers: (params) => api.get('/admin/users', { params }),
-  updateUserRole: (userId, role) => api.put(`/admin/users/${userId}/role`, { role }),
+  getDashboard: (timeRange) => {
+    if (timeRange && timeRange !== '7d') {
+      return api.get(`/admin/dashboard/${timeRange}`);
+    }
+    return api.get('/admin/dashboard');
+  },
   getSalesReport: (params) => api.get('/admin/reports/sales', { params }),
   getInventory: () => api.get('/admin/inventory'),
   updateStock: (productId, data) => api.put(`/admin/inventory/${productId}/stock`, data),
+  
+  // Admin Products
+  getProducts: (params) => api.get('/admin/products', { params }),
+  
+  // Admin Orders
+  getOrders: (params) => api.get('/admin/orders', { params }),
+  getOrderDetail: (orderId) => api.get(`/admin/orders/${orderId}`),
+  updateOrderStatus: (orderId, data) => api.put(`/admin/orders/${orderId}/status`, data),
+  
+  // Admin Users
+  getUsers: (params) => api.get('/admin/users', { params }),
+  getUser: (userId) => api.get(`/admin/users/${userId}`),
+  createUser: (userData) => api.post('/admin/users', userData),
+  updateUser: (userId, userData) => api.put(`/admin/users/${userId}`, userData),
+  deleteUser: (userId) => api.delete(`/admin/users/${userId}`),
+  updateUserRole: (userId, role) => api.put(`/admin/users/${userId}/role`, { role }),
+  
+  // Admin Reviews
+  getReviews: (params) => api.get('/admin/reviews', { params }),
+  updateReviewStatus: (reviewId, status) => api.put(`/admin/reviews/${reviewId}/status`, { status }),
+  deleteReview: (reviewId) => api.delete(`/admin/reviews/${reviewId}`),
+  
+  // Admin Analytics
+  analytics: () => api.get('/admin/analytics'),
+  
+  // Admin Categories
+  getCategories: (params) => api.get('/admin/categories', { params }),
+  getCategory: (categoryId) => api.get(`/admin/categories/${categoryId}`),
+  createCategory: (categoryData) => api.post('/admin/categories', categoryData),
+  updateCategory: (categoryId, categoryData) => api.put(`/admin/categories/${categoryId}`, categoryData),
+  deleteCategory: (categoryId) => api.delete(`/admin/categories/${categoryId}`),
 };
 
 export default api;

@@ -2,7 +2,19 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const session = require('express-session');
+const passport = require('./config/passport');
 require('dotenv').config();
+
+// Initialize database
+const { initDatabase } = require('./config/database');
+initDatabase();
+
+// Initialize ElasticSearch (optional - will work without it)
+const { initializeElasticSearch } = require('./config/elasticsearch');
+initializeElasticSearch().catch(err => {
+  console.log('⚠️ ElasticSearch not available, using basic search');
+});
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -14,11 +26,17 @@ const cartRoutes = require('./routes/cart');
 const searchRoutes = require('./routes/search');
 const recommendationRoutes = require('./routes/recommendations');
 const adminRoutes = require('./routes/admin');
+const wishlistRoutes = require('./routes/wishlist');
+const addressesRoutes = require('./routes/addresses');
 
 // Import advanced routes
 const searchAdvancedRoutes = require('./routes/search-advanced');
 const reviewsAdvancedRoutes = require('./routes/reviews-advanced');
 const recommendationsAdvancedRoutes = require('./routes/recommendations-advanced');
+
+// Import new routes
+const elasticsearchRoutes = require('./routes/elasticsearch');
+const couponsRoutes = require('./routes/coupons');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -26,6 +44,9 @@ const notFound = require('./middleware/notFound');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// Serve static files (uploaded images)
+app.use('/uploads', express.static('public/uploads'));
 
 // Middleware
 app.use(helmet());
@@ -38,6 +59,19 @@ app.use(cors({
 app.use(morgan('combined'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Session & Passport (for Google OAuth)
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'ecommerce-session-secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+}));
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Health check
 app.get('/health', (req, res) => {
@@ -78,11 +112,17 @@ app.use('/api/cart', cartRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/recommendations', recommendationRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/wishlist', wishlistRoutes);
+app.use('/api/addresses', addressesRoutes);
 
 // Advanced API Routes
 app.use('/api/search-advanced', searchAdvancedRoutes);
 app.use('/api/reviews-advanced', reviewsAdvancedRoutes);
 app.use('/api/recommendations-advanced', recommendationsAdvancedRoutes);
+
+// New API Routes
+app.use('/api/elasticsearch', elasticsearchRoutes);
+app.use('/api/coupons', couponsRoutes);
 
 // Error handling middleware
 app.use(notFound);

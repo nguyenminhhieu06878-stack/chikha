@@ -16,6 +16,8 @@ import OrderDetail from './pages/OrderDetail';
 import Search from './pages/Search';
 import Category from './pages/Category';
 import NotFound from './pages/NotFound';
+import Wishlist from './pages/Wishlist';
+import Addresses from './pages/Addresses';
 import ProtectedRoute from './components/ProtectedRoute';
 
 // Admin Pages
@@ -26,6 +28,10 @@ import OrderManagement from './pages/admin/OrderManagement';
 import Analytics from './pages/admin/Analytics';
 import Settings from './pages/admin/Settings';
 import ReviewManagement from './pages/admin/ReviewManagement';
+import CategoryManagement from './pages/admin/CategoryManagement';
+import TrendingAnalytics from './pages/admin/TrendingAnalytics';
+import SearchAnalytics from './pages/admin/SearchAnalytics';
+import AdminOrderDetail from './pages/admin/OrderDetail';
 
 function App() {
   return (
@@ -67,6 +73,16 @@ function App() {
               <Layout><OrderDetail /></Layout>
             </ProtectedRoute>
           } />
+          <Route path="/wishlist" element={
+            <ProtectedRoute>
+              <Layout><Wishlist /></Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/addresses" element={
+            <ProtectedRoute>
+              <Layout><Addresses /></Layout>
+            </ProtectedRoute>
+          } />
           
           {/* Admin Routes */}
           <Route path="/admin" element={
@@ -78,9 +94,12 @@ function App() {
             <Route path="users" element={<UserManagement />} />
             <Route path="products" element={<ProductManagement />} />
             <Route path="orders" element={<OrderManagement />} />
+            <Route path="orders/:id" element={<AdminOrderDetail />} />
+            <Route path="categories" element={<CategoryManagement />} />
             <Route path="analytics" element={<Analytics />} />
             <Route path="reviews" element={<ReviewManagement />} />
-            <Route path="search-analytics" element={<div>Search Analytics</div>} />
+            <Route path="trending" element={<TrendingAnalytics />} />
+            <Route path="search-analytics" element={<SearchAnalytics />} />
             <Route path="settings" element={<Settings />} />
           </Route>
           

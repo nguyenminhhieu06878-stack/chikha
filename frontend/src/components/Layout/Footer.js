@@ -12,15 +12,15 @@ const Footer = () => {
               honest reviews, and personalized recommendations.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-gray-300 hover:text-white transition-colors">
+              <button className="text-gray-300 hover:text-white transition-colors">
                 Facebook
-              </a>
-              <a href="#" className="text-gray-300 hover:text-white transition-colors">
+              </button>
+              <button className="text-gray-300 hover:text-white transition-colors">
                 Twitter
-              </a>
-              <a href="#" className="text-gray-300 hover:text-white transition-colors">
+              </button>
+              <button className="text-gray-300 hover:text-white transition-colors">
                 Instagram
-              </a>
+              </button>
             </div>
           </div>
 
@@ -56,24 +56,24 @@ const Footer = () => {
             <h3 className="text-lg font-semibold mb-4">Customer Service</h3>
             <ul className="space-y-2">
               <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors">
+                <button className="text-gray-300 hover:text-white transition-colors">
                   Contact Us
-                </a>
+                </button>
               </li>
               <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors">
+                <button className="text-gray-300 hover:text-white transition-colors">
                   Shipping Info
-                </a>
+                </button>
               </li>
               <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors">
+                <button className="text-gray-300 hover:text-white transition-colors">
                   Returns
-                </a>
+                </button>
               </li>
               <li>
-                <a href="#" className="text-gray-300 hover:text-white transition-colors">
+                <button className="text-gray-300 hover:text-white transition-colors">
                   FAQ
-                </a>
+                </button>
               </li>
             </ul>
           </div>
@@ -84,12 +84,12 @@ const Footer = () => {
             © 2024 E-Store. All rights reserved.
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
-            <a href="#" className="text-gray-300 hover:text-white text-sm transition-colors">
+            <button className="text-gray-300 hover:text-white text-sm transition-colors">
               Privacy Policy
-            </a>
-            <a href="#" className="text-gray-300 hover:text-white text-sm transition-colors">
+            </button>
+            <button className="text-gray-300 hover:text-white text-sm transition-colors">
               Terms of Service
-            </a>
+            </button>
           </div>
         </div>
       </div>

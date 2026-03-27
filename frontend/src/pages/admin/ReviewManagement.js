@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Star, Check, X, Flag, Filter } from 'lucide-react';
+import { Star, Check, X, Filter, Trash2 } from 'lucide-react';
+import { adminAPI } from '../../services/api';
+import toast from 'react-hot-toast';
 
 const ReviewManagement = () => {
   const [reviews, setReviews] = useState([]);
@@ -13,76 +15,89 @@ const ReviewManagement = () => {
   const fetchReviews = useCallback(async () => {
     try {
       setLoading(true);
-      // Note: This would need to be implemented in the backend
-      // For now, we'll use a mock implementation
-      const mockReviews = [
-        {
-          id: '1',
-          rating: 5,
-          comment: 'Sản phẩm rất tốt, chất lượng cao',
-          status: 'approved',
-          created_at: new Date().toISOString(),
-          user: { full_name: 'Nguyễn Văn A', email: 'user1@example.com' },
-          product: { name: 'iPhone 15 Pro', image_url: 'https://via.placeholder.com/60' }
-        },
-        {
-          id: '2',
-          rating: 4,
-          comment: 'Giao hàng nhanh, đóng gói cẩn thận',
-          status: 'pending',
-          created_at: new Date().toISOString(),
-          user: { full_name: 'Trần Thị B', email: 'user2@example.com' },
-          product: { name: 'Samsung Galaxy S24', image_url: 'https://via.placeholder.com/60' }
-        },
-        {
-          id: '3',
-          rating: 2,
-          comment: 'Sản phẩm không như mong đợi',
-          status: 'flagged',
-          created_at: new Date().toISOString(),
-          user: { full_name: 'Lê Văn C', email: 'user3@example.com' },
-          product: { name: 'MacBook Air M2', image_url: 'https://via.placeholder.com/60' }
-        }
-      ];
+      const params = {
+        page: currentPage,
+        limit: 10,
+        status: statusFilter === 'all' ? undefined : statusFilter
+      };
+
+      const response = await adminAPI.getReviews(params);
+      const reviewsData = response.data.data || [];
       
-      setReviews(mockReviews);
-      setTotalPages(1);
+      // Transform data to match component expectations
+      const transformedReviews = reviewsData.map(review => ({
+        id: review.id,
+        rating: review.rating,
+        comment: review.comment,
+        status: review.status || 'approved',
+        created_at: review.created_at,
+        user: { 
+          full_name: review.user_name,
+          email: review.user_email || 'N/A'
+        },
+        product: { 
+          name: review.product_name,
+          image_url: review.image_url || 'https://via.placeholder.com/60'
+        }
+      }));
+      
+      setReviews(transformedReviews);
+      setTotalPages(response.data.pagination?.total_pages || 1);
       setError(null);
     } catch (err) {
       setError('Không thể tải danh sách đánh giá');
       console.error('Error fetching reviews:', err);
+      toast.error('Không thể tải danh sách đánh giá');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [currentPage, statusFilter]);
 
   useEffect(() => {
     fetchReviews();
-  }, [fetchReviews]);
+  }, [fetchReviews, statusFilter, currentPage]);
 
   const handleApproveReview = async (reviewId) => {
     try {
-      // TODO: Implement approve review API
-      console.log('Approving review:', reviewId);
+      await adminAPI.updateReviewStatus(reviewId, 'approved');
       setReviews(prev => prev.map(review => 
         review.id === reviewId ? { ...review, status: 'approved' } : review
       ));
+      toast.success('Đánh giá đã được phê duyệt');
     } catch (err) {
       setError('Không thể phê duyệt đánh giá');
+      toast.error('Không thể phê duyệt đánh giá');
       console.error('Error approving review:', err);
     }
   };
 
   const handleRejectReview = async (reviewId) => {
     try {
-      // TODO: Implement reject review API
-      console.log('Rejecting review:', reviewId);
+      await adminAPI.updateReviewStatus(reviewId, 'rejected');
       setReviews(prev => prev.map(review => 
         review.id === reviewId ? { ...review, status: 'rejected' } : review
       ));
+      toast.success('Đánh giá đã được từ chối');
     } catch (err) {
       setError('Không thể từ chối đánh giá');
+      toast.error('Không thể từ chối đánh giá');
       console.error('Error rejecting review:', err);
+    }
+  };
+
+  const handleDeleteReview = async (reviewId) => {
+    if (!window.confirm('Bạn có chắc chắn muốn xóa đánh giá này?')) {
+      return;
+    }
+
+    try {
+      await adminAPI.deleteReview(reviewId);
+      setReviews(prev => prev.filter(review => review.id !== reviewId));
+      toast.success('Đánh giá đã được xóa');
+    } catch (err) {
+      setError('Không thể xóa đánh giá');
+      toast.error('Không thể xóa đánh giá');
+      console.error('Error deleting review:', err);
     }
   };
 
@@ -134,36 +149,91 @@ const ReviewManagement = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="space-y-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/4 mb-2"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <div className="animate-pulse">
+            <div className="h-6 bg-gray-200 rounded w-1/6 mb-4"></div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="h-10 bg-gray-200 rounded"></div>
+              <div className="h-10 bg-gray-200 rounded"></div>
+              <div className="h-20 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="space-y-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+              <div className="animate-pulse">
+                <div className="flex items-start space-x-4">
+                  <div className="w-20 h-20 bg-gray-200 rounded-xl"></div>
+                  <div className="flex-1">
+                    <div className="h-6 bg-gray-200 rounded w-3/4 mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/2 mb-3"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/4 mb-3"></div>
+                    <div className="h-16 bg-gray-200 rounded mb-4"></div>
+                    <div className="flex space-x-3">
+                      <div className="h-8 bg-gray-200 rounded w-20"></div>
+                      <div className="h-8 bg-gray-200 rounded w-20"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Quản lý đánh giá</h1>
+      {/* Header */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Quản lý đánh giá</h1>
+            <p className="text-gray-600 mt-1">Quản lý và kiểm duyệt đánh giá sản phẩm từ khách hàng</p>
+          </div>
+          
+          <div className="flex items-center space-x-4">
+            <div className="text-right">
+              <div className="text-2xl font-bold text-blue-600">{reviews.length}</div>
+              <div className="text-sm text-gray-500">Đánh giá</div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
           {error}
         </div>
       )}
 
       {/* Filters */}
-      <div className="bg-white p-4 rounded-lg shadow">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div className="flex items-center mb-4">
+          <Filter className="w-5 h-5 text-gray-400 mr-2" />
+          <h2 className="text-lg font-semibold text-gray-900">Bộ lọc</h2>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              <Filter className="w-4 h-4 inline mr-1" />
               Trạng thái
             </label>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="all">Tất cả trạng thái</option>
               <option value="pending">Chờ duyệt</option>
@@ -180,7 +250,7 @@ const ReviewManagement = () => {
             <select
               value={ratingFilter}
               onChange={(e) => setRatingFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="all">Tất cả đánh giá</option>
               <option value="5">5 sao</option>
@@ -190,119 +260,205 @@ const ReviewManagement = () => {
               <option value="1">1 sao</option>
             </select>
           </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Thống kê nhanh
+            </label>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <div className="bg-yellow-50 px-3 py-2 rounded-lg">
+                <div className="font-semibold text-yellow-800">
+                  {reviews.filter(r => r.status === 'pending').length}
+                </div>
+                <div className="text-yellow-600">Chờ duyệt</div>
+              </div>
+              <div className="bg-red-50 px-3 py-2 rounded-lg">
+                <div className="font-semibold text-red-800">
+                  {reviews.filter(r => r.status === 'flagged').length}
+                </div>
+                <div className="text-red-600">Báo cáo</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Reviews List */}
-      <div className="bg-white shadow rounded-lg overflow-hidden">
-        <div className="divide-y divide-gray-200">
-          {reviews.map((review) => (
-            <div key={review.id} className="p-6">
+      <div className="space-y-4">
+        {reviews.map((review) => (
+          <div key={review.id} className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
+            <div className="p-6">
               <div className="flex items-start space-x-4">
-                <img
-                  src={review.product?.image_url || 'https://via.placeholder.com/60'}
-                  alt={review.product?.name}
-                  className="w-15 h-15 rounded-lg object-cover flex-shrink-0"
-                />
+                {/* Product Image */}
+                <div className="flex-shrink-0">
+                  <img
+                    src={review.product?.image_url || 'https://via.placeholder.com/80'}
+                    alt={review.product?.name}
+                    className="w-20 h-20 rounded-xl object-cover border border-gray-200"
+                  />
+                </div>
                 
+                {/* Review Content */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-2">
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-900">
+                  {/* Header */}
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-1">
                         {review.product?.name}
                       </h3>
-                      <p className="text-sm text-gray-500">
-                        bởi {review.user?.full_name} • {formatDate(review.created_at)}
-                      </p>
+                      <div className="flex items-center text-sm text-gray-500 space-x-2">
+                        <span className="font-medium">{review.user?.full_name}</span>
+                        <span>•</span>
+                        <span>{formatDate(review.created_at)}</span>
+                      </div>
                     </div>
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadgeClass(review.status)}`}>
+                    <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${getStatusBadgeClass(review.status)}`}>
                       {getStatusText(review.status)}
                     </span>
                   </div>
                   
-                  <div className="flex items-center mb-2">
-                    {renderStars(review.rating)}
-                    <span className="ml-2 text-sm text-gray-600">
+                  {/* Rating */}
+                  <div className="flex items-center mb-3">
+                    <div className="flex items-center">
+                      {renderStars(review.rating)}
+                    </div>
+                    <span className="ml-2 text-sm font-medium text-gray-700">
                       {review.rating}/5
                     </span>
                   </div>
                   
-                  <p className="text-sm text-gray-700 mb-4">
-                    {review.comment}
-                  </p>
+                  {/* Comment */}
+                  <div className="mb-4">
+                    <p className="text-gray-700 leading-relaxed">
+                      {review.comment}
+                    </p>
+                  </div>
                   
-                  {review.status === 'pending' && (
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => handleApproveReview(review.id)}
-                        className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-green-600 hover:bg-green-700"
-                      >
-                        <Check className="w-3 h-3 mr-1" />
-                        Phê duyệt
-                      </button>
-                      <button
-                        onClick={() => handleRejectReview(review.id)}
-                        className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-red-600 hover:bg-red-700"
-                      >
-                        <X className="w-3 h-3 mr-1" />
-                        Từ chối
-                      </button>
+                  {/* Action Buttons */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex space-x-3">
+                      {review.status === 'pending' && (
+                        <>
+                          <button
+                            onClick={() => handleApproveReview(review.id)}
+                            className="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
+                          >
+                            <Check className="w-4 h-4 mr-2" />
+                            Phê duyệt
+                          </button>
+                          <button
+                            onClick={() => handleRejectReview(review.id)}
+                            className="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
+                          >
+                            <X className="w-4 h-4 mr-2" />
+                            Từ chối
+                          </button>
+                        </>
+                      )}
+                      
+                      {review.status === 'flagged' && (
+                        <>
+                          <button
+                            onClick={() => handleApproveReview(review.id)}
+                            className="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
+                          >
+                            <Check className="w-4 h-4 mr-2" />
+                            Giữ lại
+                          </button>
+                          <button
+                            onClick={() => handleDeleteReview(review.id)}
+                            className="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Xóa bỏ
+                          </button>
+                        </>
+                      )}
+
+                      {(review.status === 'approved' || review.status === 'rejected') && (
+                        <button
+                          onClick={() => handleDeleteReview(review.id)}
+                          className="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors duration-200"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Xóa
+                        </button>
+                      )}
                     </div>
-                  )}
-                  
-                  {review.status === 'flagged' && (
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => handleApproveReview(review.id)}
-                        className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-green-600 hover:bg-green-700"
-                      >
-                        <Check className="w-3 h-3 mr-1" />
-                        Giữ lại
-                      </button>
-                      <button
-                        onClick={() => handleRejectReview(review.id)}
-                        className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-red-600 hover:bg-red-700"
-                      >
-                        <Flag className="w-3 h-3 mr-1" />
-                        Xóa bỏ
-                      </button>
-                    </div>
-                  )}
+                    
+                    {/* Review ID for reference */}
+                    <span className="text-xs text-gray-400">
+                      ID: {review.id}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
 
         {reviews.length === 0 && !loading && (
-          <div className="text-center py-8 text-gray-500">
-            Không tìm thấy đánh giá nào
+          <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+            <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+              <Star className="w-8 h-8 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Không có đánh giá nào</h3>
+            <p className="text-gray-500">
+              {statusFilter === 'all' 
+                ? 'Chưa có đánh giá nào trong hệ thống'
+                : `Không tìm thấy đánh giá nào với trạng thái "${getStatusText(statusFilter)}"`
+              }
+            </p>
           </div>
         )}
       </div>
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex justify-center space-x-2">
-          <button
-            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-            className="px-3 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-          >
-            Trước
-          </button>
-          
-          <span className="px-3 py-2 text-sm text-gray-700">
-            Trang {currentPage} / {totalPages}
-          </span>
-          
-          <button
-            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-            disabled={currentPage === totalPages}
-            className="px-3 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-          >
-            Sau
-          </button>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-gray-700">
+              Hiển thị trang <span className="font-medium">{currentPage}</span> trong tổng số{' '}
+              <span className="font-medium">{totalPages}</span> trang
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+              >
+                Trước
+              </button>
+              
+              <div className="flex items-center space-x-1">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  const page = i + 1;
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 ${
+                        currentPage === page
+                          ? 'bg-blue-600 text-white'
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  );
+                })}
+              </div>
+              
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+              >
+                Sau
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

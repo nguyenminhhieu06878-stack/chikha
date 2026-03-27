@@ -1,8 +1,112 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { User, Mail, Phone, Calendar, Edit2, Save, X } from 'lucide-react';
+import { User, Mail, Phone, Calendar, Edit2, Save, X, Lock } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import LoadingSpinner from '../components/LoadingSpinner';
+import api from '../services/api';
+
+const ChangePasswordForm = () => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const { register, handleSubmit, reset, watch, formState: { errors } } = useForm();
+
+  const onSubmit = async (data) => {
+    setLoading(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      await api.put('/auth/change-password', {
+        current_password: data.current_password,
+        new_password: data.new_password
+      });
+      setSuccess('Đổi mật khẩu thành công!');
+      reset();
+    } catch (err) {
+      setError(err.response?.data?.error || 'Không thể đổi mật khẩu');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+          {error}
+        </div>
+      )}
+      {success && (
+        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+          {success}
+        </div>
+      )}
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          <Lock className="w-4 h-4 inline mr-1" />
+          Mật khẩu hiện tại
+        </label>
+        <input
+          {...register('current_password', { required: 'Vui lòng nhập mật khẩu hiện tại' })}
+          type="password"
+          className={`input ${errors.current_password ? 'border-red-500' : ''}`}
+          placeholder="Nhập mật khẩu hiện tại"
+        />
+        {errors.current_password && (
+          <p className="text-red-600 text-sm mt-1">{errors.current_password.message}</p>
+        )}
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          <Lock className="w-4 h-4 inline mr-1" />
+          Mật khẩu mới
+        </label>
+        <input
+          {...register('new_password', {
+            required: 'Vui lòng nhập mật khẩu mới',
+            minLength: { value: 6, message: 'Mật khẩu phải có ít nhất 6 ký tự' }
+          })}
+          type="password"
+          className={`input ${errors.new_password ? 'border-red-500' : ''}`}
+          placeholder="Nhập mật khẩu mới"
+        />
+        {errors.new_password && (
+          <p className="text-red-600 text-sm mt-1">{errors.new_password.message}</p>
+        )}
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          <Lock className="w-4 h-4 inline mr-1" />
+          Xác nhận mật khẩu mới
+        </label>
+        <input
+          {...register('confirm_password', {
+            required: 'Vui lòng xác nhận mật khẩu',
+            validate: (value) => value === watch('new_password') || 'Mật khẩu không khớp'
+          })}
+          type="password"
+          className={`input ${errors.confirm_password ? 'border-red-500' : ''}`}
+          placeholder="Nhập lại mật khẩu mới"
+        />
+        {errors.confirm_password && (
+          <p className="text-red-600 text-sm mt-1">{errors.confirm_password.message}</p>
+        )}
+      </div>
+
+      <button
+        type="submit"
+        disabled={loading}
+        className="btn-primary disabled:opacity-50"
+      >
+        {loading ? 'Đang xử lý...' : 'Đổi mật khẩu'}
+      </button>
+    </form>
+  );
+};
 
 const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -255,30 +359,40 @@ const Profile = () => {
         </div>
       </div>
 
+      {/* Change Password Section */}
+      <div className="card mt-8">
+        <div className="card-header">
+          <h2 className="text-xl font-bold text-gray-900">Đổi mật khẩu</h2>
+        </div>
+        <div className="card-content">
+          <ChangePasswordForm />
+        </div>
+      </div>
+
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
         <div className="card p-6 text-center">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Orders</h3>
-          <p className="text-gray-600 mb-4">View your order history</p>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Đơn hàng</h3>
+          <p className="text-gray-600 mb-4">Xem lịch sử đơn hàng</p>
           <a href="/orders" className="btn-outline">
-            View Orders
+            Xem đơn hàng
           </a>
         </div>
 
         <div className="card p-6 text-center">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Wishlist</h3>
-          <p className="text-gray-600 mb-4">Manage your saved items</p>
-          <button className="btn-outline" disabled>
-            Coming Soon
-          </button>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Yêu thích</h3>
+          <p className="text-gray-600 mb-4">Quản lý sản phẩm yêu thích</p>
+          <a href="/wishlist" className="btn-outline">
+            Xem Wishlist
+          </a>
         </div>
 
         <div className="card p-6 text-center">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Addresses</h3>
-          <p className="text-gray-600 mb-4">Manage shipping addresses</p>
-          <button className="btn-outline" disabled>
-            Coming Soon
-          </button>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Địa chỉ</h3>
+          <p className="text-gray-600 mb-4">Quản lý địa chỉ giao hàng</p>
+          <a href="/addresses" className="btn-outline">
+            Quản lý địa chỉ
+          </a>
         </div>
       </div>
     </div>

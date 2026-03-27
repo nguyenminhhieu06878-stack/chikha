@@ -26,10 +26,32 @@ const Analytics = () => {
     { staleTime: 5 * 60 * 1000 }
   );
 
-  const { data: dashboardData } = useQuery(
-    'admin-dashboard',
+  const { data: dashboardData, refetch, error: dashboardError, isLoading: dashboardLoading } = useQuery(
+    ['admin-dashboard', 'v2'], // Add version to force refresh
     () => adminAPI.getDashboard(),
-    { staleTime: 5 * 60 * 1000 }
+    { 
+      staleTime: 0, // Force fresh data
+      cacheTime: 0, // Don't cache
+      refetchOnMount: true,
+      refetchOnWindowFocus: false
+    }
+  );
+
+  const { data: analyticsData, error: analyticsError } = useQuery(
+    'admin-analytics',
+    () => adminAPI.analytics(),
+    { 
+      staleTime: 5 * 60 * 1000
+    }
+  );
+
+  // Get users data directly
+  const { data: usersData } = useQuery(
+    'admin-users-count',
+    () => adminAPI.getUsers({ limit: 1 }), // Just get pagination info
+    { 
+      staleTime: 5 * 60 * 1000
+    }
   );
 
   function getStartDate(range) {
@@ -55,13 +77,21 @@ const Analytics = () => {
     }).format(price);
   };
 
+  // Get data from correct sources
   const overview = dashboardData?.data?.overview || {};
-  const salesReport = salesData?.data || {};
+  const salesReport = salesData?.data?.data || {};
 
-  // Calculate totals from sales report
-  const totalRevenue = Object.values(salesReport).reduce((sum, item) => sum + (item.revenue || 0), 0);
-  const totalOrders = Object.values(salesReport).reduce((sum, item) => sum + (item.orders || 0), 0);
-  const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+  // Calculate totals from sales report for revenue metrics
+  const totalRevenue = salesReport.totals?.total_revenue || overview.totalRevenue || 0;
+  const totalOrders = salesReport.totals?.total_orders || overview.totalOrders || 0;
+  const avgOrderValue = salesReport.totals?.avg_order_value || (totalOrders > 0 ? totalRevenue / totalOrders : 0);
+
+  // Use dashboard data for user count
+  const totalUsers = overview.totalUsers || 0;
+
+  console.log('Debug - Dashboard data:', dashboardData);
+  console.log('Debug - Users data:', usersData);
+  console.log('Debug - Total users from users API:', totalUsers);
 
   const stats = [
     {
@@ -89,8 +119,8 @@ const Analytics = () => {
       trend: 'up'
     },
     {
-      title: 'Tổng khách hàng',
-      value: (overview.totalUsers || 0).toLocaleString(),
+      title: 'Tổng người dùng',
+      value: totalUsers.toLocaleString(),
       icon: Users,
       color: 'bg-orange-500',
       change: '+15.3%',
@@ -98,10 +128,29 @@ const Analytics = () => {
     }
   ];
 
-  if (salesLoading) {
+  if (salesLoading || dashboardLoading) {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (dashboardError || analyticsError) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-center">
+          <p className="text-red-600 mb-2">Error loading dashboard data</p>
+          <p className="text-sm text-gray-500">
+            {dashboardError?.message || analyticsError?.message || 'Unknown error'}
+          </p>
+          <button 
+            onClick={() => refetch()} 
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Retry
+          </button>
+        </div>
       </div>
     );
   }
@@ -174,31 +223,35 @@ const Analytics = () => {
           </div>
           
           <div className="space-y-4">
-            {Object.entries(salesReport).map(([date, data]) => (
-              <div key={date} className="flex items-center justify-between">
+            {salesReport.salesData?.map((item, index) => (
+              <div key={index} className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-900">
-                    {new Date(date).toLocaleDateString('vi-VN')}
+                    {item.period}
                   </p>
                   <p className="text-xs text-gray-500">
-                    {data.orders} đơn hàng
+                    {item.order_count} đơn hàng
                   </p>
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-medium text-gray-900">
-                    {formatPrice(data.revenue)}
+                    {formatPrice(item.revenue || 0)}
                   </p>
                   <div className="w-24 bg-gray-200 rounded-full h-2 mt-1">
                     <div 
                       className="bg-blue-600 h-2 rounded-full" 
                       style={{ 
-                        width: `${Math.min((data.revenue / Math.max(...Object.values(salesReport).map(d => d.revenue))) * 100, 100)}%` 
+                        width: `${Math.min((item.revenue / Math.max(...(salesReport.salesData?.map(d => d.revenue) || [1]))) * 100, 100)}%` 
                       }}
                     ></div>
                   </div>
                 </div>
               </div>
-            ))}
+            )) || (
+              <div className="text-center py-4 text-gray-500">
+                Chưa có dữ liệu doanh thu
+              </div>
+            )}
           </div>
         </div>
 
@@ -210,7 +263,7 @@ const Analytics = () => {
           </div>
           
           <div className="space-y-4">
-            {dashboardData?.data?.topProducts?.slice(0, 5).map((item, index) => (
+            {analyticsData?.data?.topProducts?.slice(0, 5).map((item, index) => (
               <div key={index} className="flex items-center space-x-4">
                 <div className="flex-shrink-0">
                   <span className="inline-flex items-center justify-center w-8 h-8 bg-gray-100 rounded-full text-sm font-medium text-gray-600">
@@ -218,21 +271,24 @@ const Analytics = () => {
                   </span>
                 </div>
                 <img
-                  src={item.products?.image_url || 'https://via.placeholder.com/40'}
-                  alt={item.products?.name}
+                  src={item.image_url || 'https://via.placeholder.com/40'}
+                  alt={item.name}
                   className="w-10 h-10 rounded-lg object-cover"
                 />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-900 truncate">
-                    {item.products?.name}
+                    {item.name}
                   </p>
                   <p className="text-sm text-gray-500">
-                    {formatPrice(item.products?.price)}
+                    {formatPrice(item.price)}
                   </p>
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-medium text-gray-900">
-                    {item.quantity} đã bán
+                    {item.total_sold} đã bán
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {formatPrice(item.revenue)}
                   </p>
                 </div>
               </div>

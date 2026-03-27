@@ -7,7 +7,7 @@ import { useAuth } from '../contexts/AuthContext';
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -15,19 +15,28 @@ const Login = () => {
 
   // Redirect if already logged in
   React.useEffect(() => {
-    if (isAuthenticated) {
-      const from = location.state?.from?.pathname || '/';
-      navigate(from, { replace: true });
+    if (isAuthenticated && user) {
+      if (user.role === 'admin') {
+        navigate('/admin', { replace: true });
+      } else {
+        const from = location.state?.from?.pathname || '/';
+        navigate(from, { replace: true });
+      }
     }
-  }, [isAuthenticated, navigate, location]);
+  }, [isAuthenticated, user, navigate, location]);
 
   const onSubmit = async (data) => {
     setLoading(true);
     const result = await login(data.email, data.password);
     
     if (result.success) {
-      const from = location.state?.from?.pathname || '/';
-      navigate(from, { replace: true });
+      // Check if user is admin and redirect accordingly
+      if (result.user?.role === 'admin') {
+        navigate('/admin', { replace: true });
+      } else {
+        const from = location.state?.from?.pathname || '/';
+        navigate(from, { replace: true });
+      }
     }
     setLoading(false);
   };
@@ -36,13 +45,6 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <div className="flex justify-center">
-            <img 
-              src="/logo.png" 
-              alt="E-Store Logo" 
-              className="logo-img logo-auth-large"
-            />
-          </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             Sign in to your account
           </h2>

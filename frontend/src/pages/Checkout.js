@@ -1,18 +1,65 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { CreditCard, Truck, Shield } from 'lucide-react';
+import { CreditCard, Truck, Shield, MapPin } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
-import { ordersAPI, formatPrice } from '../services/api';
+import { ordersAPI, formatPrice, getProductImageUrl, addressesAPI } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import toast from 'react-hot-toast';
 
 const Checkout = () => {
   const [loading, setLoading] = useState(false);
+  const [loadingAddress, setLoadingAddress] = useState(true);
+  const [savedAddresses, setSavedAddresses] = useState([]);
   const { cartItems, cartSummary, clearCart } = useCart();
   const navigate = useNavigate();
   
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const { register, handleSubmit, formState: { errors }, setValue } = useForm();
+
+  // Load saved addresses
+  useEffect(() => {
+    const loadAddresses = async () => {
+      try {
+        const response = await addressesAPI.getAddresses();
+        if (response.data.success) {
+          const addresses = response.data.data;
+          setSavedAddresses(addresses);
+          
+          // Auto-fill default address
+          const defaultAddress = addresses.find(addr => addr.is_default);
+          if (defaultAddress) {
+            setValue('full_name', defaultAddress.full_name);
+            setValue('phone', defaultAddress.phone);
+            setValue('address_line_1', defaultAddress.address_line_1);
+            setValue('address_line_2', defaultAddress.address_line_2 || '');
+            setValue('city', defaultAddress.city);
+            setValue('state', defaultAddress.state);
+            setValue('postal_code', defaultAddress.postal_code);
+            setValue('country', defaultAddress.country || 'Vietnam');
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load addresses:', error);
+      } finally {
+        setLoadingAddress(false);
+      }
+    };
+
+    loadAddresses();
+  }, [setValue]);
+
+  // Function to populate form with a saved address
+  const fillFormWithAddress = (address) => {
+    setValue('full_name', address.full_name);
+    setValue('phone', address.phone);
+    setValue('address_line_1', address.address_line_1);
+    setValue('address_line_2', address.address_line_2 || '');
+    setValue('city', address.city);
+    setValue('state', address.state);
+    setValue('postal_code', address.postal_code);
+    setValue('country', address.country || 'Vietnam');
+    toast.success('Address loaded');
+  };
 
   // Redirect if cart is empty
   React.useEffect(() => {
@@ -25,25 +72,19 @@ const Checkout = () => {
     setLoading(true);
     
     try {
-      // Prepare order data
+      // Prepare order data for SQLite backend
       const orderData = {
-        items: cartItems.map(item => ({
-          product_id: item.products.id,
-          quantity: item.quantity,
-          price: item.products.discount_price || item.products.price
-        })),
-        shipping_address: {
-          full_name: data.full_name,
-          phone: data.phone,
-          address_line_1: data.address_line_1,
-          address_line_2: data.address_line_2 || '',
-          city: data.city,
-          state: data.state,
-          postal_code: data.postal_code,
-          country: data.country || 'Vietnam'
-        },
-        payment_method: data.payment_method,
-        notes: data.notes || ''
+        items: cartItems.map(item => {
+          const product = item.products || item;
+          return {
+            product_id: product.product_id || product.id,
+            quantity: item.quantity,
+            price: product.price
+          };
+        }),
+        shipping_address: `${data.address_line_1}, ${data.address_line_2 || ''}, ${data.city}, ${data.state}`,
+        shipping_city: data.city,
+        shipping_phone: data.phone
       };
 
       const response = await ordersAPI.createOrder(orderData);
@@ -79,6 +120,48 @@ const Checkout = () => {
                 <Truck className="w-5 h-5 mr-2" />
                 Shipping Information
               </h2>
+
+              {/* Saved Addresses */}
+              {!loadingAddress && savedAddresses.length > 0 && (
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <MapPin className="w-4 h-4 inline mr-1" />
+                    Use Saved Address
+                  </label>
+                  <div className="space-y-2">
+                    {savedAddresses.map(address => (
+                      <button
+                        key={address.id}
+                        type="button"
+                        onClick={() => fillFormWithAddress(address)}
+                        className={`w-full text-left p-3 border rounded-lg hover:bg-gray-50 transition ${
+                          address.is_default ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="font-medium text-gray-900">
+                              {address.full_name}
+                              {address.is_default && (
+                                <span className="ml-2 text-xs bg-blue-500 text-white px-2 py-0.5 rounded">
+                                  Default
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-sm text-gray-600 mt-1">
+                              {address.address_line_1}, {address.city}, {address.state}
+                            </div>
+                            <div className="text-sm text-gray-500">{address.phone}</div>
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                  <div className="mt-3 pt-3 border-t">
+                    <p className="text-sm text-gray-500">Or enter a new address below:</p>
+                  </div>
+                </div>
+              )}
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
@@ -265,24 +348,30 @@ const Checkout = () => {
               
               {/* Order Items */}
               <div className="space-y-3 mb-6">
-                {cartItems.map(item => (
-                  <div key={item.id} className="flex items-center space-x-3">
-                    <img
-                      src={item.products.images?.[0] || 'https://via.placeholder.com/60'}
-                      alt={item.products.name}
-                      className="w-12 h-12 object-cover rounded"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">
-                        {item.products.name}
+                {cartItems.map(item => {
+                  const product = item.products || item;
+                  const productName = product.product_name || product.name;
+                  const productPrice = product.price;
+                  
+                  return (
+                    <div key={item.id} className="flex items-center space-x-3">
+                      <img
+                        src={getProductImageUrl(product, 'https://via.placeholder.com/60')}
+                        alt={productName}
+                        className="w-12 h-12 object-cover rounded"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">
+                          {productName}
+                        </p>
+                        <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
+                      </div>
+                      <p className="text-sm font-medium">
+                        {formatPrice(productPrice * item.quantity)}
                       </p>
-                      <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
                     </div>
-                    <p className="text-sm font-medium">
-                      {formatPrice((item.products.discount_price || item.products.price) * item.quantity)}
-                    </p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* Order Totals */}

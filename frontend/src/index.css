@@ -13,6 +13,10 @@
 }
 
 @layer components {
+  .container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  
   .btn {
     @apply inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
   }
@@ -92,14 +96,29 @@
 /* Product grid responsive */
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  align-items: stretch; /* Make all items same height */
 }
 
-@media (max-width: 640px) {
+@media (min-width: 640px) {
   .product-grid {
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .product-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .product-grid {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1.5rem;
   }
 }
 
@@ -127,6 +146,47 @@
 
 .aspect-video {
   aspect-ratio: 16 / 9;
+}
+
+/* Text truncation utilities */
+.line-clamp-1 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.line-clamp-3 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+/* Touch-friendly buttons on mobile */
+@media (max-width: 768px) {
+  .btn {
+    @apply min-h-[44px] px-4 py-2;
+  }
+  
+  .btn-primary {
+    @apply min-h-[44px];
+  }
+  
+  .btn-outline {
+    @apply min-h-[44px];
+  }
+  
+  .btn-secondary {
+    @apply min-h-[44px];
+  }
 }
 
 /* Logo responsive styles */
@@ -212,4 +272,23 @@
 
 .hover-scale {
   @apply transition-transform duration-200 hover:scale-105;
+}
+
+/* Mobile-specific improvements */
+@media (max-width: 640px) {
+  /* Improve touch targets */
+  .input {
+    @apply min-h-[44px] text-base; /* Prevent zoom on iOS */
+  }
+  
+  /* Better spacing for mobile */
+  .container {
+    @apply px-4;
+  }
+  
+  /* Improve readability */
+  body {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
 }

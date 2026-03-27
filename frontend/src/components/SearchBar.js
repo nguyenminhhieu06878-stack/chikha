@@ -35,17 +35,17 @@ const SearchBar = ({ onSearch }) => {
         try {
           setLoading(true);
           const response = await searchAPI.getSuggestions(query);
-          setSuggestions(response.data.data || []);
+          setSuggestions(response.data.data || { products: [], categories: [] });
           setShowSuggestions(true);
         } catch (error) {
           console.error('Failed to fetch suggestions:', error);
-          setSuggestions([]);
+          setSuggestions({ products: [], categories: [] });
         } finally {
           setLoading(false);
         }
       }, 300);
     } else {
-      setSuggestions([]);
+      setSuggestions({ products: [], categories: [] });
       setShowSuggestions(false);
     }
 
@@ -70,16 +70,26 @@ const SearchBar = ({ onSearch }) => {
     handleSearch();
   };
 
-  const handleSuggestionClick = (suggestion) => {
-    setQuery(suggestion);
-    handleSearch(suggestion);
+  const handleSuggestionClick = (suggestion, type = 'product') => {
+    if (type === 'product') {
+      navigate(`/products/${suggestion.id}`);
+    } else if (type === 'category') {
+      navigate(`/category/${suggestion.slug}`);
+    } else {
+      setQuery(suggestion);
+      handleSearch(suggestion);
+    }
+    setShowSuggestions(false);
+    setQuery('');
   };
 
   const clearSearch = () => {
     setQuery('');
-    setSuggestions([]);
+    setSuggestions({ products: [], categories: [] });
     setShowSuggestions(false);
   };
+
+  const hasResults = suggestions.products?.length > 0 || suggestions.categories?.length > 0;
 
   return (
     <div ref={searchRef} className="relative w-full">
@@ -108,28 +118,60 @@ const SearchBar = ({ onSearch }) => {
 
       {/* Suggestions Dropdown */}
       {showSuggestions && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto">
           {loading ? (
             <div className="p-4 text-center text-gray-500">
               <div className="loading-spinner mx-auto"></div>
             </div>
-          ) : suggestions.length > 0 ? (
-            <ul className="py-2">
-              {suggestions.map((suggestion, index) => (
-                <li key={index}>
-                  <button
-                    onClick={() => handleSuggestionClick(suggestion)}
-                    className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center space-x-2"
-                  >
-                    <Search className="w-4 h-4 text-gray-400" />
-                    <span>{suggestion}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
+          ) : hasResults ? (
+            <div className="py-2">
+              {/* Product Suggestions */}
+              {suggestions.products?.length > 0 && (
+                <div className="mb-2">
+                  <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
+                    Sản phẩm
+                  </div>
+                  <ul>
+                    {suggestions.products.map((product) => (
+                      <li key={product.id}>
+                        <button
+                          onClick={() => handleSuggestionClick(product, 'product')}
+                          className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center space-x-3"
+                        >
+                          <Search className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                          <span className="truncate">{product.name}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Category Suggestions */}
+              {suggestions.categories?.length > 0 && (
+                <div>
+                  <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase border-t">
+                    Danh mục
+                  </div>
+                  <ul>
+                    {suggestions.categories.map((category) => (
+                      <li key={category.slug}>
+                        <button
+                          onClick={() => handleSuggestionClick(category, 'category')}
+                          className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center space-x-3"
+                        >
+                          <Search className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                          <span className="truncate">{category.name}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
           ) : query.trim().length > 1 ? (
             <div className="p-4 text-center text-gray-500">
-              No suggestions found
+              Không tìm thấy kết quả
             </div>
           ) : null}
         </div>

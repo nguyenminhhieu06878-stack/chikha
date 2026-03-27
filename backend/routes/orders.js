@@ -1,364 +1,217 @@
 const express = require('express');
-const { createClient } = require('@supabase/supabase-js');
+const { db } = require('../config/database');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
+const Joi = require('joi');
 
 const router = express.Router();
-const supabaseAdmin = createClient(
-  process.env.SUPABASE_URL, 
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY
-);
 
-// GET /api/orders - Get user's orders
+// Validation schema
+const createOrderSchema = Joi.object({
+  items: Joi.array().items(Joi.object({
+    product_id: Joi.number().integer().required(),
+    quantity: Joi.number().integer().min(1).required(),
+    price: Joi.number().positive().required()
+  })).min(1).required(),
+  shipping_address: Joi.string().required(),
+  shipping_city: Joi.string().required(),
+  shipping_phone: Joi.string().required()
+});
+
+// @route   GET /api/orders
+// @desc    Get user's orders
+// @access  Private
 router.get('/', authenticateToken, async (req, res) => {
   try {
-    const { page = 1, limit = 10, status } = req.query;
     const userId = req.user.id;
+    const { page = 1, limit = 10 } = req.query;
     const offset = (page - 1) * limit;
-    
-    let query = supabaseAdmin
-      .from('orders')
-      .select(`
-        *,
-        order_items(
-          *,
-          products(id, name, price, images)
-        )
-      `)
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
-    
-    if (status) {
-      query = query.eq('status', status);
-    }
-    
-    const { data: orders, error, count } = await query;
-    
-    if (error) {
-      console.error('Database error:', error);
-      // Return empty array if table doesn't exist yet
-      return res.json({
-        success: true,
-        data: [],
-        pagination: {
-          current_page: parseInt(page),
-          per_page: parseInt(limit),
-          total: 0,
-          total_pages: 0
-        }
-      });
-    }
-    
-    const totalPages = Math.ceil((count || 0) / limit);
-    
+
+    const orders = db.prepare(`
+      SELECT * FROM orders
+      WHERE user_id = ?
+      ORDER BY created_at DESC
+      LIMIT ? OFFSET ?
+    `).all(userId, parseInt(limit), offset);
+
+    // Get order items for each order
+    orders.forEach(order => {
+      order.order_items = db.prepare(`
+        SELECT oi.*, p.name as product_name, p.image_url
+        FROM order_items oi
+        INNER JOIN products p ON oi.product_id = p.id
+        WHERE oi.order_id = ?
+      `).all(order.id);
+    });
+
+    const { total } = db.prepare('SELECT COUNT(*) as total FROM orders WHERE user_id = ?').get(userId);
+
     res.json({
       success: true,
-      data: orders || [],
+      data: orders,
       pagination: {
         current_page: parseInt(page),
         per_page: parseInt(limit),
-        total: count || 0,
-        total_pages: totalPages
+        total,
+        total_pages: Math.ceil(total / limit)
       }
     });
+
   } catch (error) {
     console.error('Get orders error:', error);
-    res.json({
-      success: true,
-      data: [],
-      pagination: {
-        current_page: parseInt(page || 1),
-        per_page: parseInt(limit || 10),
-        total: 0,
-        total_pages: 0
-      }
+    res.status(500).json({
+      success: false,
+      error: 'Server error'
     });
   }
 });
 
-// GET /api/orders/:id - Get single order
+// @route   GET /api/orders/:id
+// @desc    Get single order
+// @access  Private
 router.get('/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.id;
-    
-    const { data: order, error } = await supabaseAdmin
-      .from('orders')
-      .select(`
-        *,
-        order_items(
-          *,
-          products(id, name, price, images)
-        )
-      `)
-      .eq('id', id)
-      .eq('user_id', userId)
-      .single();
-    
-    if (error || !order) {
+
+    const order = db.prepare('SELECT * FROM orders WHERE id = ? AND user_id = ?').get(id, userId);
+
+    if (!order) {
       return res.status(404).json({
         success: false,
         error: 'Order not found'
       });
     }
-    
+
+    // Get order items
+    order.order_items = db.prepare(`
+      SELECT oi.*, p.name as product_name, p.image_url, p.category_id,
+             c.name as category_name
+      FROM order_items oi
+      INNER JOIN products p ON oi.product_id = p.id
+      LEFT JOIN categories c ON p.category_id = c.id
+      WHERE oi.order_id = ?
+    `).all(order.id);
+
     res.json({
       success: true,
       data: order
     });
+
   } catch (error) {
     console.error('Get order error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to fetch order'
+      error: 'Server error'
     });
   }
 });
 
-// POST /api/orders - Create new order
+// @route   POST /api/orders
+// @desc    Create new order
+// @access  Private
 router.post('/', authenticateToken, async (req, res) => {
   try {
-    const userId = req.user.id;
-    const { shipping_address, payment_method = 'cod' } = req.body;
-    
-    console.log('Creating order for user:', userId);
-    
-    // Get user's cart
-    const { data: cartItems, error: cartError } = await supabaseAdmin
-      .from('cart')
-      .select(`
-        *,
-        products!inner(
-          id,
-          name,
-          price,
-          discount_price,
-          stock_quantity
-        )
-      `)
-      .eq('user_id', userId);
-    
-    if (cartError) {
-      console.error('Cart fetch error:', cartError);
-      return res.status(500).json({
-        success: false,
-        error: 'Failed to fetch cart'
-      });
-    }
-    
-    if (!cartItems || cartItems.length === 0) {
+    const { error, value } = createOrderSchema.validate(req.body);
+    if (error) {
       return res.status(400).json({
         success: false,
-        error: 'Cart is empty'
+        error: error.details[0].message
       });
     }
-    
-    // Calculate order totals
-    let subtotal = 0;
-    let totalItems = 0;
-    
-    cartItems.forEach(item => {
-      const price = item.products.discount_price || item.products.price;
-      const itemTotal = price * item.quantity;
-      subtotal += itemTotal;
-      totalItems += item.quantity;
+
+    const { items, shipping_address, shipping_city, shipping_phone } = value;
+    const userId = req.user.id;
+
+    // Calculate total
+    let totalAmount = 0;
+    items.forEach(item => {
+      totalAmount += item.price * item.quantity;
     });
-    
-    const shippingFee = 0; // Free shipping
-    const total = subtotal + shippingFee;
-    
-    // Create order with only essential fields that exist in database
-    const { data: order, error: orderError } = await supabaseAdmin
-      .from('orders')
-      .insert({
-        user_id: userId,
-        total_amount: total,
-        shipping_address: shipping_address || {
-          full_name: 'Customer',
-          phone: '0123456789',
-          address_line_1: 'Default Address',
-          city: 'Ho Chi Minh',
-          state: 'Ho Chi Minh',
-          postal_code: '70000'
-        }
-      })
-      .select()
-      .single();
-    
-    if (orderError) {
-      console.error('Order creation error:', orderError);
-      return res.status(500).json({
-        success: false,
-        error: 'Failed to create order: ' + orderError.message
-      });
-    }
-    
-    console.log('Order created successfully:', order.id);
-    
+
+    // Create order
+    const insertOrder = db.prepare(`
+      INSERT INTO orders (user_id, total_amount, shipping_address, shipping_city, shipping_phone, status)
+      VALUES (?, ?, ?, ?, ?, 'pending')
+    `);
+    const orderResult = insertOrder.run(userId, totalAmount, shipping_address, shipping_city, shipping_phone);
+    const orderId = orderResult.lastInsertRowid;
+
     // Create order items
-    const orderItems = cartItems.map(item => {
-      const price = item.products.discount_price || item.products.price;
-      const subtotal = price * item.quantity;
-      return {
-        order_id: order.id,
-        product_id: item.product_id,
-        quantity: item.quantity,
-        price: price,
-        subtotal: subtotal
-      };
+    const insertItem = db.prepare('INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)');
+    
+    items.forEach(item => {
+      insertItem.run(orderId, item.product_id, item.quantity, item.price);
+      
+      // Update product stock
+      db.prepare('UPDATE products SET stock_quantity = stock_quantity - ? WHERE id = ?').run(item.quantity, item.product_id);
     });
-    
-    console.log('Creating order items:', orderItems);
-    
-    const { error: itemsError } = await supabaseAdmin
-      .from('order_items')
-      .insert(orderItems);
-    
-    if (itemsError) {
-      console.error('Order items creation error:', itemsError);
-      // Don't fail the order if items creation fails, just log the error
-    } else {
-      console.log('Order items created successfully');
-    }
-    
+
     // Clear user's cart
-    await supabaseAdmin
-      .from('cart')
-      .delete()
-      .eq('user_id', userId);
-    
+    db.prepare('DELETE FROM cart_items WHERE user_id = ?').run(userId);
+
+    // Get created order with items
+    const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(orderId);
+    order.order_items = db.prepare(`
+      SELECT oi.*, p.name as product_name, p.image_url
+      FROM order_items oi
+      INNER JOIN products p ON oi.product_id = p.id
+      WHERE oi.order_id = ?
+    `).all(orderId);
+
     res.status(201).json({
       success: true,
       data: order,
       message: 'Order created successfully'
     });
+
   } catch (error) {
     console.error('Create order error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to create order: ' + error.message
+      error: 'Server error'
     });
   }
 });
 
-// PUT /api/orders/:id/status - Update order status (admin only)
+// @route   PUT /api/orders/:id/status
+// @desc    Update order status (Admin only)
+// @access  Private (Admin)
 router.put('/:id/status', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
-    
-    const validStatuses = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'];
+
+    const validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({
         success: false,
         error: 'Invalid status'
       });
     }
-    
-    const { data: order, error } = await supabaseAdmin
-      .from('orders')
-      .update({ status })
-      .eq('id', id)
-      .select()
-      .single();
-    
-    if (error || !order) {
+
+    const order = db.prepare('SELECT id FROM orders WHERE id = ?').get(id);
+    if (!order) {
       return res.status(404).json({
         success: false,
         error: 'Order not found'
       });
     }
-    
+
+    db.prepare('UPDATE orders SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(status, id);
+
+    const updatedOrder = db.prepare('SELECT * FROM orders WHERE id = ?').get(id);
+
     res.json({
       success: true,
-      data: order,
+      data: updatedOrder,
       message: 'Order status updated successfully'
     });
+
   } catch (error) {
     console.error('Update order status error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to update order status'
-    });
-  }
-});
-
-// DELETE /api/orders/:id - Cancel order
-router.delete('/:id', authenticateToken, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const userId = req.user.id;
-    
-    // Check if order exists and belongs to user
-    const { data: order, error: fetchError } = await supabaseAdmin
-      .from('orders')
-      .select('*')
-      .eq('id', id)
-      .eq('user_id', userId)
-      .single();
-    
-    if (fetchError || !order) {
-      return res.status(404).json({
-        success: false,
-        error: 'Order not found'
-      });
-    }
-    
-    // Only allow cancellation of pending orders
-    if (order.status !== 'pending') {
-      return res.status(400).json({
-        success: false,
-        error: 'Only pending orders can be cancelled'
-      });
-    }
-    
-    // Update order status to cancelled
-    const { error: updateError } = await supabaseAdmin
-      .from('orders')
-      .update({ status: 'cancelled' })
-      .eq('id', id);
-    
-    if (updateError) {
-      return res.status(500).json({
-        success: false,
-        error: 'Failed to cancel order'
-      });
-    }
-    
-    // Restore product stock
-    const { data: orderItems } = await supabaseAdmin
-      .from('order_items')
-      .select('product_id, quantity')
-      .eq('order_id', id);
-    
-    if (orderItems) {
-      for (const item of orderItems) {
-        const { data: product } = await supabaseAdmin
-          .from('products')
-          .select('stock_quantity')
-          .eq('id', item.product_id)
-          .single();
-        
-        if (product) {
-          await supabaseAdmin
-            .from('products')
-            .update({ 
-              stock_quantity: product.stock_quantity + item.quantity 
-            })
-            .eq('id', item.product_id);
-        }
-      }
-    }
-    
-    res.json({
-      success: true,
-      message: 'Order cancelled successfully'
-    });
-  } catch (error) {
-    console.error('Cancel order error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to cancel order'
+      error: 'Server error'
     });
   }
 });

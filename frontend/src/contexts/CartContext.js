@@ -34,9 +34,7 @@ export const CartProvider = ({ children }) => {
     
     try {
       setLoading(true);
-      console.log('Fetching cart data...');
       const response = await cartAPI.getCart();
-      console.log('Cart API response:', response.data);
       
       // Handle the API response structure: { success: true, data: { items: [], summary: {} } }
       if (response.data && response.data.success && response.data.data) {
@@ -63,9 +61,7 @@ export const CartProvider = ({ children }) => {
 
     try {
       setLoading(true);
-      console.log('Adding to cart:', { productId, quantity });
       const response = await cartAPI.addToCart({ product_id: productId, quantity });
-      console.log('Add to cart response:', response);
       
       // Force refresh cart after adding
       await fetchCart();

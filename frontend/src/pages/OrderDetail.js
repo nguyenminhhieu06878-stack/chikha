@@ -13,7 +13,7 @@ import {
   Clock,
   XCircle
 } from 'lucide-react';
-import { ordersAPI, formatPrice, formatDateTime } from '../services/api';
+import { ordersAPI, formatPrice, formatDateTime, getProductImageUrl } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 const OrderDetail = () => {
@@ -26,8 +26,18 @@ const OrderDetail = () => {
     () => ordersAPI.getOrder(id),
     { 
       enabled: !!id,
+      refetchOnWindowFocus: false,
+      refetchOnMount: true,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      cacheTime: 10 * 60 * 1000, // 10 minutes
       onSuccess: (data) => {
-        console.log('Order data loaded:', data);
+        console.log('=== FRONTEND ORDER DATA ===');
+        console.log('Raw API response:', data);
+        console.log('Response.data:', data?.data);
+        console.log('Response.data.data:', data?.data?.data);
+        console.log('Order items:', data?.data?.order_items);
+        console.log('Order items (nested):', data?.data?.data?.order_items);
+        console.log('=== END FRONTEND ORDER DATA ===');
       },
       onError: (error) => {
         console.error('Order loading error:', error);
@@ -35,7 +45,16 @@ const OrderDetail = () => {
     }
   );
 
-  const order = orderData?.data;
+  // Handle axios response structure - data might be nested
+  const order = orderData?.data?.data || orderData?.data;
+  
+  console.log('=== ORDER OBJECT ===');
+  console.log('Order:', order);
+  console.log('Order items:', order?.order_items);
+  console.log('Order items length:', order?.order_items?.length);
+  console.log('Total amount:', order?.total_amount);
+  console.log('Payment method:', order?.payment_method);
+  console.log('=== END ORDER OBJECT ===');
   
   console.log('OrderDetail render:', { id, isLoading, error, order });
 
@@ -115,7 +134,7 @@ const OrderDetail = () => {
               Chi tiết đơn hàng
             </h1>
             <p className="text-gray-600 mt-1">
-              {order?.id ? `ORD${order.id.slice(-8).toUpperCase()}` : 'Đang tải...'}
+              {order?.id ? `ORD${String(order.id).padStart(8, '0')}` : 'Đang tải...'}
             </p>
           </div>
         </div>
@@ -137,34 +156,41 @@ const OrderDetail = () => {
             </div>
             <div className="card-content">
               <div className="space-y-4">
-                {order?.order_items?.map((item) => (
-                  <div key={item.id} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-                    <img
-                      src={item.products?.images?.[0] || 'https://via.placeholder.com/80'}
-                      alt={item.products?.name}
-                      className="w-20 h-20 object-cover rounded-lg"
-                    />
-                    <div className="flex-1">
-                      <h3 className="font-medium text-gray-900">{item.products?.name}</h3>
-                      <p className="text-sm text-gray-500 mt-1">
-                        {item.products?.categories?.name}
-                      </p>
-                      <div className="flex items-center justify-between mt-2">
-                        <span className="text-sm text-gray-600">
-                          Số lượng: {item.quantity}
-                        </span>
-                        <span className="font-medium text-gray-900">
-                          {formatPrice(item.price)} × {item.quantity}
-                        </span>
+                {order?.order_items && order.order_items.length > 0 ? (
+                  order.order_items.map((item) => (
+                    <div key={item.id} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                      <img
+                        src={item.image_url || 'https://via.placeholder.com/80'}
+                        alt={item.product_name || 'Product'}
+                        className="w-20 h-20 object-cover rounded-lg"
+                      />
+                      <div className="flex-1">
+                        <h3 className="font-medium text-gray-900">{item.product_name || 'Sản phẩm'}</h3>
+                        <p className="text-sm text-gray-500 mt-1">
+                          {item.category_name || 'Danh mục'}
+                        </p>
+                        <div className="flex items-center justify-between mt-2">
+                          <span className="text-sm text-gray-600">
+                            Số lượng: {item.quantity}
+                          </span>
+                          <span className="font-medium text-gray-900">
+                            {formatPrice(item.price)} × {item.quantity}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-lg text-gray-900">
+                          {formatPrice(item.price * item.quantity)}
+                        </p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-bold text-lg text-gray-900">
-                        {formatPrice(item.total || (item.price * item.quantity))}
-                      </p>
-                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-500">Không có sản phẩm trong đơn hàng này</p>
                   </div>
-                ))}
+                )}
               </div>
             </div>
           </div>
@@ -252,8 +278,9 @@ const OrderDetail = () => {
                   <p className="text-sm text-gray-600">Phương thức thanh toán</p>
                   <p className="font-medium">
                     {order?.payment_method === 'cod' ? 'Thanh toán khi nhận hàng' : 
+                     order?.payment_method === 'cash' ? 'Thanh toán khi nhận hàng' :
                      order?.payment_method === 'bank_transfer' ? 'Chuyển khoản' : 
-                     order?.payment_method?.toUpperCase() || ''}
+                     order?.payment_method?.toUpperCase() || 'Chưa xác định'}
                   </p>
                 </div>
               </div>
@@ -270,21 +297,21 @@ const OrderDetail = () => {
             </div>
             <div className="card-content">
               <div className="space-y-2">
-                <p className="font-medium text-gray-900">{order.shipping_address?.full_name}</p>
-                <p className="flex items-center text-gray-600">
-                  <Phone className="w-4 h-4 mr-2" />
-                  {order.shipping_address?.phone}
-                </p>
-                <div className="text-gray-600">
-                  <p>{order.shipping_address?.address_line_1}</p>
-                  {order.shipping_address?.address_line_2 && (
-                    <p>{order.shipping_address.address_line_2}</p>
-                  )}
-                  <p>
-                    {order.shipping_address?.city}, {order.shipping_address?.state} {order.shipping_address?.postal_code}
+                {order?.shipping_phone && (
+                  <p className="flex items-center text-gray-600">
+                    <Phone className="w-4 h-4 mr-2" />
+                    {order.shipping_phone}
                   </p>
-                  {order.shipping_address?.country && order.shipping_address.country !== 'Vietnam' && (
-                    <p>{order.shipping_address.country}</p>
+                )}
+                <div className="text-gray-600">
+                  {order?.shipping_address && (
+                    <p className="whitespace-pre-line">{order.shipping_address}</p>
+                  )}
+                  {order?.shipping_city && (
+                    <p className="font-medium mt-2">{order.shipping_city}</p>
+                  )}
+                  {!order?.shipping_address && !order?.shipping_city && (
+                    <p className="text-gray-400 italic">Chưa có địa chỉ giao hàng</p>
                   )}
                 </div>
               </div>

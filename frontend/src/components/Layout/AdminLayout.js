@@ -8,10 +8,12 @@ import {
   BarChart3, 
   Settings,
   Search,
+  TrendingUp,
   MessageSquare,
   Menu,
   X,
-  LogOut
+  LogOut,
+  FolderOpen
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -24,8 +26,9 @@ const AdminLayout = () => {
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
     { name: 'Users', href: '/admin/users', icon: Users },
     { name: 'Products', href: '/admin/products', icon: Package },
+    { name: 'Categories', href: '/admin/categories', icon: FolderOpen },
     { name: 'Orders', href: '/admin/orders', icon: ShoppingCart },
-    { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
+    { name: 'Trending', href: '/admin/trending', icon: TrendingUp },
     { name: 'Reviews', href: '/admin/reviews', icon: MessageSquare },
     { name: 'Search Analytics', href: '/admin/search-analytics', icon: Search },
     { name: 'Settings', href: '/admin/settings', icon: Settings },

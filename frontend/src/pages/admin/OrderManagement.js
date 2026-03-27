@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Eye, Package, Truck, CheckCircle, XCircle, Filter } from 'lucide-react';
-import { ordersAPI } from '../../services/api';
+import { adminAPI } from '../../services/api';
 
 const OrderManagement = () => {
+  const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -19,13 +21,34 @@ const OrderManagement = () => {
         status: statusFilter !== 'all' ? statusFilter : undefined,
       };
       
-      const response = await ordersAPI.getOrders(params);
-      setOrders(response.data.orders || []);
-      setTotalPages(response.data.totalPages || 1);
+      console.log('Calling adminAPI.getOrders with params:', params);
+      const response = await adminAPI.getOrders(params);
+      console.log('Orders API response:', response);
+      console.log('Response data:', response.data);
+      
+      // Handle axios response structure
+      const responseData = response.data;
+      
+      if (responseData.success && responseData.data) {
+        console.log('Orders found:', responseData.data.orders);
+        setOrders(responseData.data.orders || []);
+        setTotalPages(responseData.data.totalPages || responseData.pagination?.total_pages || 1);
+      } else if (Array.isArray(responseData)) {
+        console.log('Orders array:', responseData);
+        setOrders(responseData);
+        setTotalPages(1);
+      } else {
+        console.warn('Unexpected response structure:', responseData);
+        setOrders([]);
+        setTotalPages(1);
+      }
+      
       setError(null);
     } catch (err) {
       setError('Không thể tải danh sách đơn hàng');
       console.error('Error fetching orders:', err);
+      setOrders([]);
+      setTotalPages(1);
     } finally {
       setLoading(false);
     }
@@ -37,7 +60,8 @@ const OrderManagement = () => {
 
   const handleStatusUpdate = async (orderId, newStatus) => {
     try {
-      await ordersAPI.updateOrderStatus(orderId, { status: newStatus });
+      // Use admin API for status update
+      await adminAPI.updateOrderStatus(orderId, { status: newStatus });
       fetchOrders();
     } catch (err) {
       setError('Không thể cập nhật trạng thái đơn hàng');
@@ -49,8 +73,6 @@ const OrderManagement = () => {
     switch (status) {
       case 'pending':
         return 'bg-yellow-100 text-yellow-800';
-      case 'confirmed':
-        return 'bg-blue-100 text-blue-800';
       case 'processing':
         return 'bg-purple-100 text-purple-800';
       case 'shipped':
@@ -67,7 +89,6 @@ const OrderManagement = () => {
   const getStatusText = (status) => {
     const statusMap = {
       pending: 'Chờ xử lý',
-      confirmed: 'Đã xác nhận',
       processing: 'Đang xử lý',
       shipped: 'Đã gửi hàng',
       delivered: 'Đã giao hàng',
@@ -128,7 +149,6 @@ const OrderManagement = () => {
             >
               <option value="all">Tất cả trạng thái</option>
               <option value="pending">Chờ xử lý</option>
-              <option value="confirmed">Đã xác nhận</option>
               <option value="processing">Đang xử lý</option>
               <option value="shipped">Đã gửi hàng</option>
               <option value="delivered">Đã giao hàng</option>
@@ -168,7 +188,7 @@ const OrderManagement = () => {
               <tr key={order.id}>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm font-medium text-gray-900">
-                    #{order.id.slice(0, 8)}
+                    #{String(order.id).padStart(8, '0')}
                   </div>
                   <div className="text-sm text-gray-500">
                     {order.order_items?.length || 0} sản phẩm
@@ -196,7 +216,7 @@ const OrderManagement = () => {
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <div className="flex space-x-2">
                     <button
-                      onClick={() => {/* TODO: View order details */}}
+                      onClick={() => navigate(`/admin/orders/${order.id}`)}
                       className="text-blue-600 hover:text-blue-900"
                       title="Xem chi tiết"
                     >
@@ -204,16 +224,6 @@ const OrderManagement = () => {
                     </button>
                     
                     {order.status === 'pending' && (
-                      <button
-                        onClick={() => handleStatusUpdate(order.id, 'confirmed')}
-                        className="text-green-600 hover:text-green-900"
-                        title="Xác nhận đơn hàng"
-                      >
-                        <CheckCircle className="w-4 h-4" />
-                      </button>
-                    )}
-                    
-                    {order.status === 'confirmed' && (
                       <button
                         onClick={() => handleStatusUpdate(order.id, 'processing')}
                         className="text-purple-600 hover:text-purple-900"
@@ -243,7 +253,7 @@ const OrderManagement = () => {
                       </button>
                     )}
                     
-                    {['pending', 'confirmed'].includes(order.status) && (
+                    {['pending'].includes(order.status) && (
                       <button
                         onClick={() => handleStatusUpdate(order.id, 'cancelled')}
                         className="text-red-600 hover:text-red-900"
