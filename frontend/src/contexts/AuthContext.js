@@ -94,6 +94,12 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const setAuthData = (userData, userToken) => {
+    setUser(userData);
+    setToken(userToken);
+    localStorage.setItem('token', userToken);
+  };
+
   const value = {
     user,
     token,
@@ -102,6 +108,7 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     updateProfile,
+    setAuthData,
     isAuthenticated: !!user,
     isAdmin: user?.role === 'admin'
   };

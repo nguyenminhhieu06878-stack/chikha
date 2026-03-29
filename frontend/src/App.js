@@ -18,6 +18,7 @@ import Category from './pages/Category';
 import NotFound from './pages/NotFound';
 import Wishlist from './pages/Wishlist';
 import Addresses from './pages/Addresses';
+import AuthCallback from './pages/AuthCallback';
 import ProtectedRoute from './components/ProtectedRoute';
 
 // Admin Pages
@@ -46,6 +47,7 @@ function App() {
           <Route path="/search" element={<Layout><Search /></Layout>} />
           <Route path="/login" element={<Layout><Login /></Layout>} />
           <Route path="/register" element={<Layout><Register /></Layout>} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
           
           {/* Protected Customer Routes */}
           <Route path="/cart" element={

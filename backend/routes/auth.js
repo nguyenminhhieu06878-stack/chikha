@@ -307,9 +307,37 @@ router.get('/google',
  * @access  Public
  */
 router.get('/google/callback',
-  passport.authenticate('google', { failureRedirect: '/login' }),
+  (req, res, next) => {
+    console.log('Google callback received, authenticating...');
+    passport.authenticate('google', { 
+      failureRedirect: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/login?error=auth_failed`,
+      session: false 
+    }, (err, user, info) => {
+      console.log('Passport authenticate callback - err:', err, 'user:', user ? user.id : null, 'info:', info);
+      
+      if (err) {
+        console.error('Passport authentication error:', err);
+        return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/login?error=auth_error`);
+      }
+      
+      if (!user) {
+        console.error('No user returned from passport');
+        return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/login?error=no_user`);
+      }
+      
+      req.user = user;
+      next();
+    })(req, res, next);
+  },
   async (req, res) => {
     try {
+      console.log('Google callback handler - User:', req.user);
+      
+      if (!req.user) {
+        console.error('No user in request');
+        return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/login?error=no_user`);
+      }
+
       // Generate JWT token
       const token = jwt.sign(
         { 
@@ -320,6 +348,8 @@ router.get('/google/callback',
         process.env.JWT_SECRET,
         { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
       );
+
+      console.log('Token generated successfully for user:', req.user.id);
 
       // Redirect to frontend with token
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
