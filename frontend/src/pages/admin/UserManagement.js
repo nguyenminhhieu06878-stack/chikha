@@ -36,9 +36,9 @@ const UserManagement = () => {
       setTotalPages(response.data.pagination?.total_pages || 1);
       setError(null);
     } catch (err) {
-      setError('Không thể tải danh sách người dùng');
+      setError('Unable to load user list');
       console.error('Error fetching users:', err);
-      toast.error('Không thể tải danh sách người dùng');
+      toast.error('Unable to load user list');
     } finally {
       setLoading(false);
     }
@@ -63,7 +63,7 @@ const UserManagement = () => {
       const response = await adminAPI.getUser(user.id);
       setViewingUser(response.data.data);
     } catch (err) {
-      toast.error('Không thể tải thông tin người dùng');
+      toast.error('Unable to load user information');
       console.error('Error fetching user details:', err);
     }
   };
@@ -75,11 +75,11 @@ const UserManagement = () => {
       if (editingUser) {
         // Update existing user
         await adminAPI.updateUser(editingUser.id, userData);
-        toast.success('Cập nhật người dùng thành công');
+        toast.success('User updated successfully');
       } else {
         // Create new user
         await adminAPI.createUser(userData);
-        toast.success('Thêm người dùng thành công');
+        toast.success('User added successfully');
       }
       
       setIsModalOpen(false);
@@ -95,16 +95,16 @@ const UserManagement = () => {
   };
 
   const handleDeleteUser = async (user) => {
-    if (!window.confirm(`Bạn có chắc chắn muốn xóa người dùng "${user.full_name}"?`)) {
+    if (!window.confirm(`Are you sure you want to delete user "${user.full_name}"?`)) {
       return;
     }
 
     try {
       await adminAPI.deleteUser(user.id);
-      toast.success('Xóa người dùng thành công');
+      toast.success('User deleted successfully');
       fetchUsers();
     } catch (err) {
-      const message = err.response?.data?.error || 'Không thể xóa người dùng';
+      const message = err.response?.data?.error || 'Unable to delete user';
       toast.error(message);
       console.error('Error deleting user:', err);
     }
@@ -162,21 +162,21 @@ const UserManagement = () => {
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Quản lý người dùng</h1>
-            <p className="text-gray-600 mt-1">Quản lý tài khoản người dùng trong hệ thống</p>
+            <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
+            <p className="text-gray-600 mt-1">Manage user accounts in the system</p>
           </div>
           
           <div className="flex items-center space-x-4">
             <div className="text-right">
               <div className="text-2xl font-bold text-blue-600">{users.length}</div>
-              <div className="text-sm text-gray-500">Người dùng</div>
+              <div className="text-sm text-gray-500">Users</div>
             </div>
             <button
               onClick={handleAddUser}
               className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 flex items-center space-x-2 transition-colors duration-200"
             >
               <UserPlus className="w-5 h-5" />
-              <span>Thêm người dùng</span>
+              <span>Add User</span>
             </button>
           </div>
         </div>
@@ -192,18 +192,18 @@ const UserManagement = () => {
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <div className="flex items-center mb-4">
           <Filter className="w-5 h-5 text-gray-400 mr-2" />
-          <h2 className="text-lg font-semibold text-gray-900">Bộ lọc</h2>
+          <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <Search className="w-4 h-4 inline mr-1" />
-              Tìm kiếm
+              Search
             </label>
             <input
               type="text"
-              placeholder="Tìm theo tên hoặc email..."
+              placeholder="Search by name or email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -212,22 +212,22 @@ const UserManagement = () => {
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Vai trò
+              Role
             </label>
             <select
               value={filterRole}
               onChange={(e) => setFilterRole(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="all">Tất cả vai trò</option>
-              <option value="admin">Quản trị viên</option>
-              <option value="customer">Khách hàng</option>
+              <option value="all">All Roles</option>
+              <option value="admin">Administrator</option>
+              <option value="customer">Customer</option>
             </select>
           </div>
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Thống kê nhanh
+              Quick Stats
             </label>
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div className="bg-red-50 px-3 py-2 rounded-lg">
@@ -240,7 +240,7 @@ const UserManagement = () => {
                 <div className="font-semibold text-green-800">
                   {users.filter(u => u.role === 'customer').length}
                 </div>
-                <div className="text-green-600">Khách hàng</div>
+                <div className="text-green-600">Customer</div>
               </div>
             </div>
           </div>
@@ -254,19 +254,19 @@ const UserManagement = () => {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Người dùng
+                  User
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Vai trò
+                  Role
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Ngày tạo
+                  Created
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Cập nhật
+                  Updated
                 </th>
                 <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Thao tác
+                  Actions
                 </th>
               </tr>
             </thead>
@@ -303,7 +303,7 @@ const UserManagement = () => {
                         ? 'bg-red-100 text-red-800' 
                         : 'bg-green-100 text-green-800'
                     }`}>
-                      {user.role === 'admin' ? 'Quản trị viên' : 'Khách hàng'}
+                      {user.role === 'admin' ? 'Administrator' : 'Customer'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -317,21 +317,21 @@ const UserManagement = () => {
                       <button 
                         onClick={() => handleViewUser(user)}
                         className="text-gray-600 hover:text-gray-900 p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
-                        title="Xem chi tiết"
+                        title="View Details"
                       >
                         <Eye className="w-4 h-4" />
                       </button>
                       <button 
                         onClick={() => handleEditUser(user)}
                         className="text-blue-600 hover:text-blue-900 p-2 hover:bg-blue-50 rounded-lg transition-colors duration-200"
-                        title="Chỉnh sửa"
+                        title="Edit"
                       >
                         <Edit className="w-4 h-4" />
                       </button>
                       <button 
                         onClick={() => handleDeleteUser(user)}
                         className="text-red-600 hover:text-red-900 p-2 hover:bg-red-50 rounded-lg transition-colors duration-200"
-                        title="Xóa"
+                        title="Delete"
                         disabled={user.role === 'admin'}
                       >
                         <Trash2 className="w-4 h-4" />
@@ -349,11 +349,11 @@ const UserManagement = () => {
             <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
               <Users className="w-8 h-8 text-gray-400" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Chưa có người dùng nào</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No users yet</h3>
             <p className="text-gray-500 mb-4">
               {searchTerm || filterRole !== 'all' 
-                ? 'Không tìm thấy người dùng nào phù hợp với bộ lọc'
-                : 'Bắt đầu bằng cách thêm người dùng đầu tiên'
+                ? 'No users found matching the filter'
+                : 'Start by adding the first user'
               }
             </p>
             {!searchTerm && filterRole === 'all' && (
@@ -361,7 +361,7 @@ const UserManagement = () => {
                 onClick={handleAddUser}
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200"
               >
-                Thêm người dùng đầu tiên
+                Add First User
               </button>
             )}
           </div>
@@ -375,7 +375,7 @@ const UserManagement = () => {
             disabled={currentPage === 1}
             className="px-3 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
           >
-            Trước
+            Previous
           </button>
           
           <span className="px-3 py-2 text-sm text-gray-700">
@@ -408,14 +408,14 @@ const UserManagement = () => {
             <div className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" onClick={() => setViewingUser(null)}></div>
             <div className="inline-block w-full max-w-md p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium text-gray-900">Chi tiết người dùng</h3>
+                <h3 className="text-lg font-medium text-gray-900">User Details</h3>
                 <button onClick={() => setViewingUser(null)} className="text-gray-400 hover:text-gray-600">
                   <X className="w-6 h-6" />
                 </button>
               </div>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Họ tên</label>
+                  <label className="block text-sm font-medium text-gray-700">Full Name</label>
                   <p className="text-sm text-gray-900">{viewingUser.full_name}</p>
                 </div>
                 <div>
@@ -423,28 +423,28 @@ const UserManagement = () => {
                   <p className="text-sm text-gray-900">{viewingUser.email}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Số điện thoại</label>
-                  <p className="text-sm text-gray-900">{viewingUser.phone || 'Chưa cập nhật'}</p>
+                  <label className="block text-sm font-medium text-gray-700">Phone Number</label>
+                  <p className="text-sm text-gray-900">{viewingUser.phone || 'Not updated'}</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Vai trò</label>
-                  <p className="text-sm text-gray-900">{viewingUser.role === 'admin' ? 'Quản trị viên' : 'Khách hàng'}</p>
+                  <p className="text-sm text-gray-900">{viewingUser.role === 'admin' ? 'Administrator' : 'Customer'}</p>
                 </div>
                 {viewingUser.stats && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Thống kê</label>
+                    <label className="block text-sm font-medium text-gray-700">Statistics</label>
                     <div className="grid grid-cols-3 gap-4 mt-2">
                       <div className="text-center">
                         <div className="text-lg font-bold text-blue-600">{viewingUser.stats.total_orders}</div>
-                        <div className="text-xs text-gray-500">Đơn hàng</div>
+                        <div className="text-xs text-gray-500">Orders</div>
                       </div>
                       <div className="text-center">
                         <div className="text-lg font-bold text-green-600">{viewingUser.stats.total_spent?.toLocaleString() || 0}đ</div>
-                        <div className="text-xs text-gray-500">Đã chi</div>
+                        <div className="text-xs text-gray-500">Spent</div>
                       </div>
                       <div className="text-center">
                         <div className="text-lg font-bold text-purple-600">{viewingUser.stats.total_reviews}</div>
-                        <div className="text-xs text-gray-500">Đánh giá</div>
+                        <div className="text-xs text-gray-500">Reviews</div>
                       </div>
                     </div>
                   </div>

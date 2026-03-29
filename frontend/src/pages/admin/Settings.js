@@ -4,7 +4,7 @@ import { Save, Bell, Shield, Database, Globe } from 'lucide-react';
 const Settings = () => {
   const [settings, setSettings] = useState({
     siteName: 'E-Commerce Store',
-    siteDescription: 'Cửa hàng trực tuyến chất lượng cao',
+    siteDescription: 'High-quality online store',
     currency: 'VND',
     language: 'vi',
     timezone: 'Asia/Ho_Chi_Minh',
@@ -29,19 +29,19 @@ const Settings = () => {
   const handleSave = () => {
     // TODO: Save settings to backend
     console.log('Saving settings:', settings);
-    alert('Cài đặt đã được lưu thành công!');
+    alert('Settings saved successfully!');
   };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Cài đặt hệ thống</h1>
+        <h1 className="text-2xl font-bold text-gray-900">System Settings</h1>
         <button
           onClick={handleSave}
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2"
         >
           <Save className="w-4 h-4" />
-          <span>Lưu cài đặt</span>
+          <span>Save Settings</span>
         </button>
       </div>
 
@@ -50,13 +50,13 @@ const Settings = () => {
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex items-center mb-4">
             <Globe className="w-5 h-5 text-gray-400 mr-2" />
-            <h2 className="text-lg font-semibold text-gray-900">Cài đặt chung</h2>
+            <h2 className="text-lg font-semibold text-gray-900">General Settings</h2>
           </div>
           
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Tên website
+                Website Name
               </label>
               <input
                 type="text"
@@ -68,7 +68,7 @@ const Settings = () => {
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Mô tả website
+                Website Description
               </label>
               <textarea
                 value={settings.siteDescription}
@@ -81,14 +81,14 @@ const Settings = () => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Tiền tệ
+                  Currency
                 </label>
                 <select
                   value={settings.currency}
                   onChange={(e) => handleSettingChange('currency', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="VND">VND - Việt Nam Đồng</option>
+                  <option value="VND">VND - Vietnamese Dong</option>
                   <option value="USD">USD - US Dollar</option>
                   <option value="EUR">EUR - Euro</option>
                 </select>
@@ -96,14 +96,14 @@ const Settings = () => {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Ngôn ngữ
+                  Language
                 </label>
                 <select
                   value={settings.language}
                   onChange={(e) => handleSettingChange('language', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="vi">Tiếng Việt</option>
+                  <option value="vi">Vietnamese</option>
                   <option value="en">English</option>
                 </select>
               </div>
@@ -115,14 +115,14 @@ const Settings = () => {
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex items-center mb-4">
             <Bell className="w-5 h-5 text-gray-400 mr-2" />
-            <h2 className="text-lg font-semibold text-gray-900">Thông báo</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Notifications</h2>
           </div>
           
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-900">Email thông báo</p>
-                <p className="text-sm text-gray-500">Nhận thông báo qua email</p>
+                <p className="text-sm font-medium text-gray-900">Email Notifications</p>
+                <p className="text-sm text-gray-500">Receive notifications via email</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -137,8 +137,8 @@ const Settings = () => {
             
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-900">Thông báo đơn hàng</p>
-                <p className="text-sm text-gray-500">Thông báo khi có đơn hàng mới</p>
+                <p className="text-sm font-medium text-gray-900">Order Notifications</p>
+                <p className="text-sm text-gray-500">Notify when new orders arrive</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -153,8 +153,8 @@ const Settings = () => {
             
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-900">Cảnh báo hết hàng</p>
-                <p className="text-sm text-gray-500">Thông báo khi sản phẩm sắp hết</p>
+                <p className="text-sm font-medium text-gray-900">Low Stock Alerts</p>
+                <p className="text-sm text-gray-500">Notify when products are running low</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -173,14 +173,14 @@ const Settings = () => {
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex items-center mb-4">
             <Shield className="w-5 h-5 text-gray-400 mr-2" />
-            <h2 className="text-lg font-semibold text-gray-900">Bảo mật</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Security</h2>
           </div>
           
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-900">Cho phép đăng ký</p>
-                <p className="text-sm text-gray-500">Người dùng có thể tự đăng ký tài khoản</p>
+                <p className="text-sm font-medium text-gray-900">Allow Registration</p>
+                <p className="text-sm text-gray-500">Users can register new accounts</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -195,8 +195,8 @@ const Settings = () => {
             
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-900">Xác thực email</p>
-                <p className="text-sm text-gray-500">Yêu cầu xác thực email khi đăng ký</p>
+                <p className="text-sm font-medium text-gray-900">Email Verification</p>
+                <p className="text-sm text-gray-500">Require email verification on registration</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -211,7 +211,7 @@ const Settings = () => {
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Thời gian hết hạn phiên (phút)
+                Session Timeout (minutes)
               </label>
               <input
                 type="number"
@@ -227,14 +227,14 @@ const Settings = () => {
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex items-center mb-4">
             <Database className="w-5 h-5 text-gray-400 mr-2" />
-            <h2 className="text-lg font-semibold text-gray-900">Hệ thống</h2>
+            <h2 className="text-lg font-semibold text-gray-900">System</h2>
           </div>
           
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-900">Chế độ bảo trì</p>
-                <p className="text-sm text-gray-500">Tạm dừng hoạt động website</p>
+                <p className="text-sm font-medium text-gray-900">Maintenance Mode</p>
+                <p className="text-sm text-gray-500">Temporarily disable website</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -249,7 +249,7 @@ const Settings = () => {
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Số lượng sản phẩm tối đa trong đơn hàng
+                Maximum Products per Order
               </label>
               <input
                 type="number"
@@ -261,14 +261,14 @@ const Settings = () => {
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Múi giờ
+                Timezone
               </label>
               <select
                 value={settings.timezone}
                 onChange={(e) => handleSettingChange('timezone', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="Asia/Ho_Chi_Minh">Việt Nam (UTC+7)</option>
+                <option value="Asia/Ho_Chi_Minh">Vietnam (UTC+7)</option>
                 <option value="UTC">UTC (UTC+0)</option>
                 <option value="America/New_York">New York (UTC-5)</option>
               </select>

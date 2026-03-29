@@ -21,10 +21,10 @@ const ChangePasswordForm = () => {
         current_password: data.current_password,
         new_password: data.new_password
       });
-      setSuccess('Đổi mật khẩu thành công!');
+      setSuccess('Password changed successfully!');
       reset();
     } catch (err) {
-      setError(err.response?.data?.error || 'Không thể đổi mật khẩu');
+      setError(err.response?.data?.error || 'Unable to change password');
     } finally {
       setLoading(false);
     }
@@ -46,13 +46,13 @@ const ChangePasswordForm = () => {
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
           <Lock className="w-4 h-4 inline mr-1" />
-          Mật khẩu hiện tại
+          Current Password
         </label>
         <input
-          {...register('current_password', { required: 'Vui lòng nhập mật khẩu hiện tại' })}
+          {...register('current_password', { required: 'Please enter current password' })}
           type="password"
           className={`input ${errors.current_password ? 'border-red-500' : ''}`}
-          placeholder="Nhập mật khẩu hiện tại"
+          placeholder="Enter current password"
         />
         {errors.current_password && (
           <p className="text-red-600 text-sm mt-1">{errors.current_password.message}</p>
@@ -62,16 +62,16 @@ const ChangePasswordForm = () => {
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
           <Lock className="w-4 h-4 inline mr-1" />
-          Mật khẩu mới
+          New Password
         </label>
         <input
           {...register('new_password', {
-            required: 'Vui lòng nhập mật khẩu mới',
-            minLength: { value: 6, message: 'Mật khẩu phải có ít nhất 6 ký tự' }
+            required: 'Please enter new password',
+            minLength: { value: 6, message: 'Password must be at least 6 characters' }
           })}
           type="password"
           className={`input ${errors.new_password ? 'border-red-500' : ''}`}
-          placeholder="Nhập mật khẩu mới"
+          placeholder="Enter new password"
         />
         {errors.new_password && (
           <p className="text-red-600 text-sm mt-1">{errors.new_password.message}</p>
@@ -81,16 +81,16 @@ const ChangePasswordForm = () => {
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
           <Lock className="w-4 h-4 inline mr-1" />
-          Xác nhận mật khẩu mới
+          Confirm New Password
         </label>
         <input
           {...register('confirm_password', {
-            required: 'Vui lòng xác nhận mật khẩu',
-            validate: (value) => value === watch('new_password') || 'Mật khẩu không khớp'
+            required: 'Please confirm password',
+            validate: (value) => value === watch('new_password') || 'Passwords do not match'
           })}
           type="password"
           className={`input ${errors.confirm_password ? 'border-red-500' : ''}`}
-          placeholder="Nhập lại mật khẩu mới"
+          placeholder="Re-enter new password"
         />
         {errors.confirm_password && (
           <p className="text-red-600 text-sm mt-1">{errors.confirm_password.message}</p>
@@ -102,7 +102,7 @@ const ChangePasswordForm = () => {
         disabled={loading}
         className="btn-primary disabled:opacity-50"
       >
-        {loading ? 'Đang xử lý...' : 'Đổi mật khẩu'}
+        {loading ? 'Processing...' : 'Change Password'}
       </button>
     </form>
   );
@@ -362,7 +362,7 @@ const Profile = () => {
       {/* Change Password Section */}
       <div className="card mt-8">
         <div className="card-header">
-          <h2 className="text-xl font-bold text-gray-900">Đổi mật khẩu</h2>
+          <h2 className="text-xl font-bold text-gray-900">Change Password</h2>
         </div>
         <div className="card-content">
           <ChangePasswordForm />
@@ -372,26 +372,26 @@ const Profile = () => {
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
         <div className="card p-6 text-center">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Đơn hàng</h3>
-          <p className="text-gray-600 mb-4">Xem lịch sử đơn hàng</p>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Orders</h3>
+          <p className="text-gray-600 mb-4">View order history</p>
           <a href="/orders" className="btn-outline">
-            Xem đơn hàng
+            View Orders
           </a>
         </div>
 
         <div className="card p-6 text-center">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Yêu thích</h3>
-          <p className="text-gray-600 mb-4">Quản lý sản phẩm yêu thích</p>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Wishlist</h3>
+          <p className="text-gray-600 mb-4">Manage favorite products</p>
           <a href="/wishlist" className="btn-outline">
-            Xem Wishlist
+            View Wishlist
           </a>
         </div>
 
         <div className="card p-6 text-center">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Địa chỉ</h3>
-          <p className="text-gray-600 mb-4">Quản lý địa chỉ giao hàng</p>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Addresses</h3>
+          <p className="text-gray-600 mb-4">Manage delivery addresses</p>
           <a href="/addresses" className="btn-outline">
-            Quản lý địa chỉ
+            Manage Addresses
           </a>
         </div>
       </div>

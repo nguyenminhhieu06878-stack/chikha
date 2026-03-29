@@ -5,9 +5,9 @@ const TimeRangeSelector = ({ value, onChange, options, size = 'md' }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const defaultOptions = [
-    { value: '1d', label: 'Hôm nay' },
-    { value: '7d', label: '7 ngày qua' },
-    { value: '30d', label: '30 ngày qua' },
+    { value: '1d', label: 'Today' },
+    { value: '7d', label: 'Last 7 days' },
+    { value: '30d', label: 'Last 30 days' },
     { value: '3m', label: '3 tháng qua' }
   ];
 

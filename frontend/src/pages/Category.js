@@ -7,16 +7,12 @@ import LoadingSpinner from '../components/LoadingSpinner';
 const Category = () => {
   const { slug } = useParams();
 
-  // Fetch category and its products
+  // Fetch category and its products directly by slug
   const { data: categoryData, isLoading } = useQuery(
     ['category', slug],
     async () => {
-      const categories = await categoriesAPI.getCategories();
-      const category = categories.data.data.find(cat => cat.slug === slug);
-      if (!category) throw new Error('Category not found');
-      
-      const categoryDetails = await categoriesAPI.getCategory(category.id);
-      return categoryDetails.data;
+      const response = await categoriesAPI.getCategory(slug);
+      return response.data.data;
     },
     { enabled: !!slug }
   );
@@ -37,7 +33,7 @@ const Category = () => {
   }
 
   const category = categoryData;
-  const products = category.products || [];
+  const products = category?.products || [];
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

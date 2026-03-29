@@ -124,12 +124,12 @@ const ProductDetail = () => {
 
   const handleAddToCart = async () => {
     if (!isAuthenticated) {
-      toast.error('Vui lòng đăng nhập để thêm vào giỏ hàng');
+      toast.error('Please login to add to cart');
       return;
     }
 
     if (quantity > stockQuantity) {
-      toast.error(`Chỉ còn ${stockQuantity} sản phẩm`);
+      toast.error(`Only ${stockQuantity} items left`);
       return;
     }
 
@@ -145,10 +145,10 @@ const ProductDetail = () => {
         queryClient.invalidateQueries(['product', id]);
         setShowReviewForm(false);
         setReviewForm({ rating: 5, comment: '' });
-        toast.success('Đánh giá của bạn đã được gửi thành công!');
+        toast.success('Your review has been submitted successfully!');
       },
       onError: (error) => {
-        toast.error(error.response?.data?.error || 'Không thể gửi đánh giá');
+        toast.error(error.response?.data?.error || 'Unable to submit review');
       }
     }
   );
@@ -162,10 +162,10 @@ const ProductDetail = () => {
         queryClient.invalidateQueries(['product', id]);
         setEditingReview(null);
         setReviewForm({ rating: 5, comment: '' });
-        toast.success('Đánh giá đã được cập nhật!');
+        toast.success('Review has been updated!');
       },
       onError: (error) => {
-        toast.error(error.response?.data?.error || 'Không thể cập nhật đánh giá');
+        toast.error(error.response?.data?.error || 'Unable to update review');
       }
     }
   );
@@ -177,10 +177,10 @@ const ProductDetail = () => {
       onSuccess: () => {
         queryClient.invalidateQueries(['reviews', id]);
         queryClient.invalidateQueries(['product', id]);
-        toast.success('Đánh giá đã được xóa!');
+        toast.success('Review has been deleted!');
       },
       onError: (error) => {
-        toast.error(error.response?.data?.error || 'Không thể xóa đánh giá');
+        toast.error(error.response?.data?.error || 'Unable to delete review');
       }
     }
   );
@@ -189,12 +189,12 @@ const ProductDetail = () => {
     e.preventDefault();
     
     if (!isAuthenticated) {
-      toast.error('Vui lòng đăng nhập để đánh giá');
+      toast.error('Please login to write a review');
       return;
     }
 
     if (reviewForm.comment.length < 10) {
-      toast.error('Đánh giá phải có ít nhất 10 ký tự');
+      toast.error('Review must be at least 10 characters');
       return;
     }
 
@@ -218,7 +218,7 @@ const ProductDetail = () => {
   };
 
   const handleDeleteReview = (reviewId) => {
-    if (window.confirm('Bạn có chắc muốn xóa đánh giá này?')) {
+    if (window.confirm('Are you sure you want to delete this review?')) {
       deleteReviewMutation.mutate(reviewId);
     }
   };
@@ -267,13 +267,13 @@ const ProductDetail = () => {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900">Lỗi tải sản phẩm</h1>
-          <p className="text-gray-600 mt-2">Không thể tải thông tin sản phẩm. Vui lòng thử lại.</p>
+          <h1 className="text-2xl font-bold text-gray-900">Error Loading Product</h1>
+          <p className="text-gray-600 mt-2">Unable to load product information. Please try again.</p>
           <button 
             onClick={() => window.location.reload()} 
             className="mt-4 btn-primary"
           >
-            Tải lại trang
+            Reload Page
           </button>
         </div>
       </div>
@@ -285,13 +285,13 @@ const ProductDetail = () => {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900">Không tìm thấy sản phẩm</h1>
-          <p className="text-gray-600 mt-2">Sản phẩm bạn đang tìm không tồn tại hoặc đã bị xóa.</p>
+          <h1 className="text-2xl font-bold text-gray-900">Product Not Found</h1>
+          <p className="text-gray-600 mt-2">The product you're looking for doesn't exist or has been removed.</p>
           <button 
             onClick={() => window.location.href = '/products'} 
             className="mt-4 btn-primary"
           >
-            Quay lại danh sách sản phẩm
+            Back to Products
           </button>
         </div>
       </div>
@@ -305,7 +305,7 @@ const ProductDetail = () => {
     ? product.images 
     : [PLACEHOLDER_IMAGES.large];
   
-  const productName = product?.name || 'Sản phẩm';
+  const productName = product?.name || 'Product';
   const productPrice = typeof product?.price === 'number' 
     ? product.price 
     : parseFloat(product?.price) || 0;
@@ -382,7 +382,7 @@ const ProductDetail = () => {
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">{productName}</h1>
             {product?.category_name && (
               <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-500">Danh mục:</span>
+                <span className="text-sm text-gray-500">Category:</span>
                 <span className="text-primary-600 font-medium">{product.category_name}</span>
               </div>
             )}
@@ -400,13 +400,13 @@ const ProductDetail = () => {
             </div>
             <div className="flex items-center space-x-4 text-sm sm:text-base">
               <span className="text-gray-600">
-                <span className="font-medium">{product.review_count || 0}</span> đánh giá
+                <span className="font-medium">{product.review_count || 0}</span> reviews
               </span>
               {product.sold_count > 0 && (
                 <>
                   <span className="text-gray-400">|</span>
                   <span className="text-gray-600">
-                    Đã bán: <span className="font-medium">{product.sold_count}</span>
+                    Sold: <span className="font-medium">{product.sold_count}</span>
                   </span>
                 </>
               )}
@@ -442,10 +442,10 @@ const ProductDetail = () => {
                 : 'bg-red-100 text-red-800'
             }`}>
               {stockQuantity > 10 
-                ? `Còn hàng (${stockQuantity} sản phẩm)` 
+                ? `In Stock (${stockQuantity} items)` 
                 : stockQuantity > 0 
-                ? `Chỉ còn ${stockQuantity} sản phẩm`
-                : 'Hết hàng'
+                ? `Only ${stockQuantity} left`
+                : 'Out of Stock'
               }
             </span>
           </div>
@@ -453,7 +453,7 @@ const ProductDetail = () => {
           {/* Description */}
           {product.description && (
             <div className="bg-white border rounded-lg p-4 sm:p-6">
-              <h3 className="text-lg font-semibold mb-3 text-gray-900">Mô tả sản phẩm</h3>
+              <h3 className="text-lg font-semibold mb-3 text-gray-900">Product Description</h3>
               <p className="text-gray-700 leading-relaxed whitespace-pre-line text-sm sm:text-base">{product.description}</p>
             </div>
           )}
@@ -462,7 +462,7 @@ const ProductDetail = () => {
           {stockQuantity > 0 && (
             <div className="space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-                <span className="text-sm font-medium">Số lượng:</span>
+                <span className="text-sm font-medium">Quantity:</span>
                 <div className="flex items-center border border-gray-300 rounded-lg w-fit">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -491,7 +491,7 @@ const ProductDetail = () => {
                   </button>
                 </div>
                 <span className="text-sm text-gray-500">
-                  (Tối đa: {stockQuantity})
+                  (Max: {stockQuantity})
                 </span>
               </div>
 
@@ -506,7 +506,7 @@ const ProductDetail = () => {
                   ) : (
                     <>
                       <ShoppingCart className="w-5 h-5" />
-                      <span>Thêm vào giỏ hàng</span>
+                      <span>Add to Cart</span>
                     </>
                   )}
                 </button>
@@ -514,7 +514,7 @@ const ProductDetail = () => {
                 <div className="flex space-x-3 sm:space-x-2">
                   <button 
                     className="btn-outline p-3 hover:bg-red-50 hover:border-red-500 hover:text-red-500 transition flex-1 sm:flex-none"
-                    title="Thêm vào yêu thích"
+                    title="Add to Wishlist"
                   >
                     <Heart className="w-5 h-5 mx-auto sm:mx-0" />
                   </button>
@@ -531,7 +531,7 @@ const ProductDetail = () => {
                         });
                       } else {
                         navigator.clipboard.writeText(window.location.href);
-                        toast.success('Đã sao chép link sản phẩm!');
+                        toast.success('Product link copied!');
                       }
                     }}
                   >
@@ -544,43 +544,43 @@ const ProductDetail = () => {
 
           {/* Product Details */}
           <div className="bg-white border rounded-lg p-4 sm:p-6">
-            <h3 className="text-lg font-semibold mb-4 text-gray-900">Thông tin chi tiết</h3>
+            <h3 className="text-lg font-semibold mb-4 text-gray-900">Product Details</h3>
             <dl className="space-y-0">
               {product.category_name && (
                 <div className="flex flex-col sm:flex-row py-3 border-b hover:bg-gray-50 px-2 -mx-2">
-                  <dt className="text-sm text-gray-600 sm:w-40 font-medium mb-1 sm:mb-0">Danh mục:</dt>
+                  <dt className="text-sm text-gray-600 sm:w-40 font-medium mb-1 sm:mb-0">Category:</dt>
                   <dd className="text-sm text-gray-900 font-medium">{product.category_name}</dd>
                 </div>
               )}
               {product.sku && (
                 <div className="flex flex-col sm:flex-row py-3 border-b hover:bg-gray-50 px-2 -mx-2">
-                  <dt className="text-sm text-gray-600 sm:w-40 font-medium mb-1 sm:mb-0">Mã sản phẩm:</dt>
+                  <dt className="text-sm text-gray-600 sm:w-40 font-medium mb-1 sm:mb-0">SKU:</dt>
                   <dd className="text-sm text-gray-900">{product.sku}</dd>
                 </div>
               )}
               <div className="flex flex-col sm:flex-row py-3 border-b hover:bg-gray-50 px-2 -mx-2">
-                <dt className="text-sm text-gray-600 sm:w-40 font-medium mb-1 sm:mb-0">Tình trạng:</dt>
+                <dt className="text-sm text-gray-600 sm:w-40 font-medium mb-1 sm:mb-0">Status:</dt>
                 <dd className="text-sm">
                   <span className={`font-medium ${
                     stockQuantity > 0 ? 'text-green-600' : 'text-red-600'
                   }`}>
-                    {stockQuantity > 0 ? 'Còn hàng' : 'Hết hàng'}
+                    {stockQuantity > 0 ? 'In Stock' : 'Out of Stock'}
                   </span>
                 </dd>
               </div>
               <div className="flex flex-col sm:flex-row py-3 border-b hover:bg-gray-50 px-2 -mx-2">
-                <dt className="text-sm text-gray-600 sm:w-40 font-medium mb-1 sm:mb-0">Số lượng:</dt>
-                <dd className="text-sm text-gray-900">{stockQuantity} sản phẩm</dd>
+                <dt className="text-sm text-gray-600 sm:w-40 font-medium mb-1 sm:mb-0">Stock:</dt>
+                <dd className="text-sm text-gray-900">{stockQuantity} items</dd>
               </div>
               {product.weight && (
                 <div className="flex flex-col sm:flex-row py-3 border-b hover:bg-gray-50 px-2 -mx-2">
-                  <dt className="text-sm text-gray-600 sm:w-40 font-medium mb-1 sm:mb-0">Trọng lượng:</dt>
+                  <dt className="text-sm text-gray-600 sm:w-40 font-medium mb-1 sm:mb-0">Weight:</dt>
                   <dd className="text-sm text-gray-900">{product.weight} kg</dd>
                 </div>
               )}
               {product.brand && (
                 <div className="flex flex-col sm:flex-row py-3 border-b hover:bg-gray-50 px-2 -mx-2">
-                  <dt className="text-sm text-gray-600 sm:w-40 font-medium mb-1 sm:mb-0">Thương hiệu:</dt>
+                  <dt className="text-sm text-gray-600 sm:w-40 font-medium mb-1 sm:mb-0">Brand:</dt>
                   <dd className="text-sm text-gray-900">{product.brand}</dd>
                 </div>
               )}
@@ -614,7 +614,7 @@ const ProductDetail = () => {
           
           return (
             <div className="bg-white border rounded-lg p-4 sm:p-6 mb-8 sm:mb-12">
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Thông số kỹ thuật</h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Specifications</h2>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 lg:gap-x-8 gap-y-1">
                 {Object.entries(specs).map(([key, value], idx) => (
                   <div key={idx} className="flex flex-col sm:flex-row py-3 border-b border-gray-200 hover:bg-gray-50 px-2 -mx-2">
@@ -633,7 +633,7 @@ const ProductDetail = () => {
 
       {/* Reviews Section */}
       <div className="border-t pt-8 sm:pt-12">
-        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6 sm:mb-8">Đánh giá sản phẩm</h2>
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6 sm:mb-8">Product Reviews</h2>
         
         {/* Review Summary */}
         <div className="bg-gray-50 rounded-lg p-4 sm:p-6 mb-6 sm:mb-8">
@@ -646,7 +646,7 @@ const ProductDetail = () => {
                 {renderStars(reviewSummary.average_rating)}
               </div>
               <div className="text-gray-600 text-sm sm:text-base">
-                {reviewSummary.total_reviews} đánh giá
+                {reviewSummary.total_reviews} reviews
               </div>
             </div>
             
@@ -665,7 +665,7 @@ const ProductDetail = () => {
                       ratingFilter === rating ? 'bg-gray-200' : ''
                     }`}
                   >
-                    <span className="font-medium w-12 text-left">{rating} sao</span>
+                    <span className="font-medium w-12 text-left">{rating} stars</span>
                     <div className="flex-1 bg-gray-200 rounded-full h-2">
                       <div 
                         className="bg-yellow-400 h-2 rounded-full"
@@ -687,7 +687,7 @@ const ProductDetail = () => {
               onClick={() => setShowReviewForm(true)}
               className="btn-primary"
             >
-              Viết đánh giá
+              Write a Review
             </button>
           </div>
         )}
@@ -696,13 +696,13 @@ const ProductDetail = () => {
         {showReviewForm && (
           <div className="bg-white border rounded-lg p-6 mb-8">
             <h3 className="text-lg font-semibold mb-4">
-              {editingReview ? 'Chỉnh sửa đánh giá' : 'Viết đánh giá của bạn'}
+              {editingReview ? 'Edit Review' : 'Write Your Review'}
             </h3>
             <form onSubmit={handleSubmitReview} className="space-y-4">
               {/* Rating */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Đánh giá của bạn *
+                  Your Rating *
                 </label>
                 <div className="flex items-center space-x-2">
                   {[1, 2, 3, 4, 5].map((star) => (
@@ -722,7 +722,7 @@ const ProductDetail = () => {
                     </button>
                   ))}
                   <span className="text-sm text-gray-600 ml-2">
-                    {reviewForm.rating} sao
+                    {reviewForm.rating} stars
                   </span>
                 </div>
               </div>
@@ -730,7 +730,7 @@ const ProductDetail = () => {
               {/* Comment */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Nhận xét của bạn *
+                  Your Review *
                 </label>
                 <textarea
                   value={reviewForm.comment}
@@ -739,10 +739,10 @@ const ProductDetail = () => {
                   required
                   minLength={10}
                   className="input"
-                  placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm này (tối thiểu 10 ký tự)..."
+                  placeholder="Share your experience with this product (minimum 10 characters)..."
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  {reviewForm.comment.length}/10 ký tự tối thiểu
+                  {reviewForm.comment.length}/10 minimum characters
                 </p>
               </div>
 
@@ -754,8 +754,8 @@ const ProductDetail = () => {
                   className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {createReviewMutation.isLoading || updateReviewMutation.isLoading 
-                    ? 'Đang gửi...' 
-                    : editingReview ? 'Cập nhật đánh giá' : 'Gửi đánh giá'
+                    ? 'Submitting...' 
+                    : editingReview ? 'Update Review' : 'Submit Review'
                   }
                 </button>
                 <button
@@ -763,7 +763,7 @@ const ProductDetail = () => {
                   onClick={handleCancelEdit}
                   className="btn-outline"
                 >
-                  Hủy
+                  Cancel
                 </button>
               </div>
             </form>
@@ -777,8 +777,8 @@ const ProductDetail = () => {
           ) : reviews.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               {ratingFilter 
-                ? `Không có đánh giá ${ratingFilter} sao` 
-                : 'Chưa có đánh giá nào. Hãy là người đầu tiên đánh giá sản phẩm này!'
+                ? `No ${ratingFilter} star reviews` 
+                : 'No reviews yet. Be the first to review this product!'
               }
             </div>
           ) : (
@@ -823,7 +823,7 @@ const ProductDetail = () => {
                             onClick={() => handleDeleteReview(review.id)}
                             className="text-red-600 hover:text-red-700 text-sm"
                           >
-                            Xóa
+                            Delete
                           </button>
                         </div>
                       )}
@@ -837,7 +837,7 @@ const ProductDetail = () => {
                     {/* Verified Purchase Badge */}
                     {review.is_verified_purchase && (
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        ✓ Đã mua hàng
+                        ✓ Verified Purchase
                       </span>
                     )}
                   </div>
@@ -853,11 +853,11 @@ const ProductDetail = () => {
         <div className="border-t pt-8 sm:pt-12 mt-8 sm:mt-12">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8 space-y-2 sm:space-y-0">
             <div>
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Sản phẩm liên quan</h2>
-              <p className="text-gray-600 mt-1 text-sm sm:text-base">Các sản phẩm tương tự bạn có thể quan tâm</p>
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Related Products</h2>
+              <p className="text-gray-600 mt-1 text-sm sm:text-base">Similar products you might like</p>
             </div>
             <span className="text-xs sm:text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-              {similarProducts.length} sản phẩm
+              {similarProducts.length} products
             </span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">

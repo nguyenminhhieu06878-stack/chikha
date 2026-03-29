@@ -40,7 +40,7 @@ const AdminOrderDetail = () => {
       await adminAPI.updateOrderStatus(id, { status: newStatus });
       await fetchOrderDetail(); // Refresh data
     } catch (err) {
-      setError('Không thể cập nhật trạng thái đơn hàng');
+      setError('Unable to update order status');
       console.error('Error updating order status:', err);
     } finally {
       setUpdating(false);
@@ -66,11 +66,11 @@ const AdminOrderDetail = () => {
 
   const getStatusText = (status) => {
     const statusMap = {
-      pending: 'Chờ xử lý',
-      processing: 'Đang xử lý',
-      shipped: 'Đã gửi hàng',
-      delivered: 'Đã giao hàng',
-      cancelled: 'Đã hủy'
+      pending: 'Pending',
+      processing: 'Processing',
+      shipped: 'Shipped',
+      delivered: 'Delivered',
+      cancelled: 'Cancelled'
     };
     return statusMap[status] || status;
   };
@@ -145,7 +145,7 @@ const AdminOrderDetail = () => {
 
       {/* Status Update Actions */}
       <div className="bg-white p-4 rounded-lg shadow">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Cập nhật trạng thái</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Update Status</h3>
         <div className="flex space-x-3">
           {order.status === 'pending' && (
             <button
@@ -176,7 +176,7 @@ const AdminOrderDetail = () => {
               className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
             >
               <CheckCircle className="w-4 h-4 mr-2" />
-              Đã giao hàng
+              Delivered
             </button>
           )}
           
@@ -187,7 +187,7 @@ const AdminOrderDetail = () => {
               className="flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
             >
               <XCircle className="w-4 h-4 mr-2" />
-              Hủy đơn hàng
+              Cancel Order
             </button>
           )}
         </div>

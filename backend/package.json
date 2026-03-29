@@ -9,6 +9,9 @@
     "test": "jest",
     "test-api": "node test-api.js",
     "seed": "node database/seed-data.js",
+    "seed-category-images": "node seed-category-images.js",
+    "seed-product-images": "node seed-supermarket-images.js",
+    "seed-all-images": "npm run seed-category-images && npm run seed-product-images",
     "create-accounts": "node create-demo-accounts.js",
     "setup": "echo 'Please create tables in Supabase Dashboard first, then run: npm run seed'"
   },

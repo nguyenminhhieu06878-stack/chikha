@@ -71,9 +71,9 @@ const Analytics = () => {
   }
 
   const formatPrice = (price) => {
-    return new Intl.NumberFormat('vi-VN', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'VND',
+      currency: 'USD',
     }).format(price);
   };
 
@@ -95,7 +95,7 @@ const Analytics = () => {
 
   const stats = [
     {
-      title: 'Tổng doanh thu',
+      title: 'Total Revenue',
       value: formatPrice(totalRevenue),
       icon: DollarSign,
       color: 'bg-green-500',
@@ -103,7 +103,7 @@ const Analytics = () => {
       trend: 'up'
     },
     {
-      title: 'Tổng đơn hàng',
+      title: 'Total Orders',
       value: totalOrders.toLocaleString(),
       icon: ShoppingCart,
       color: 'bg-blue-500',
@@ -111,7 +111,7 @@ const Analytics = () => {
       trend: 'up'
     },
     {
-      title: 'Giá trị đơn hàng TB',
+      title: 'Average Order Value',
       value: formatPrice(avgOrderValue),
       icon: BarChart3,
       color: 'bg-purple-500',
@@ -119,7 +119,7 @@ const Analytics = () => {
       trend: 'up'
     },
     {
-      title: 'Tổng người dùng',
+      title: 'Total Users',
       value: totalUsers.toLocaleString(),
       icon: Users,
       color: 'bg-orange-500',
@@ -159,17 +159,17 @@ const Analytics = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Phân tích & Báo cáo</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Analytics & Reports</h1>
         <div className="flex space-x-4">
           <select
             value={dateRange}
             onChange={(e) => setDateRange(e.target.value)}
             className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="1d">24 giờ qua</option>
-            <option value="7d">7 ngày qua</option>
-            <option value="30d">30 ngày qua</option>
-            <option value="90d">90 ngày qua</option>
+            <option value="1d">Last 24 hours</option>
+            <option value="7d">Last 7 days</option>
+            <option value="30d">Last 30 days</option>
+            <option value="90d">Last 90 days</option>
           </select>
           
           <select
@@ -177,9 +177,9 @@ const Analytics = () => {
             onChange={(e) => setReportType(e.target.value)}
             className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="sales">Báo cáo bán hàng</option>
-            <option value="products">Báo cáo sản phẩm</option>
-            <option value="customers">Báo cáo khách hàng</option>
+            <option value="sales">Sales Report</option>
+            <option value="products">Product Report</option>
+            <option value="customers">Customer Report</option>
           </select>
         </div>
       </div>
@@ -208,7 +208,7 @@ const Analytics = () => {
               }`}>
                 {stat.change}
               </span>
-              <span className="text-sm text-gray-500 ml-1">so với kỳ trước</span>
+              <span className="text-sm text-gray-500 ml-1">vs previous period</span>
             </div>
           </div>
         ))}
@@ -218,7 +218,7 @@ const Analytics = () => {
         {/* Sales Chart */}
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Doanh thu theo thời gian</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Revenue Over Time</h2>
             <Calendar className="w-5 h-5 text-gray-400" />
           </div>
           
@@ -230,7 +230,7 @@ const Analytics = () => {
                     {item.period}
                   </p>
                   <p className="text-xs text-gray-500">
-                    {item.order_count} đơn hàng
+                    {item.order_count} orders
                   </p>
                 </div>
                 <div className="text-right">
@@ -249,7 +249,7 @@ const Analytics = () => {
               </div>
             )) || (
               <div className="text-center py-4 text-gray-500">
-                Chưa có dữ liệu doanh thu
+                No revenue data available
               </div>
             )}
           </div>
@@ -258,7 +258,7 @@ const Analytics = () => {
         {/* Top Products */}
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Sản phẩm bán chạy</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Top Products</h2>
             <Package className="w-5 h-5 text-gray-400" />
           </div>
           
@@ -285,7 +285,7 @@ const Analytics = () => {
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-medium text-gray-900">
-                    {item.total_sold} đã bán
+                    {item.total_sold} sold
                   </p>
                   <p className="text-xs text-gray-500">
                     {formatPrice(item.revenue)}
@@ -294,7 +294,7 @@ const Analytics = () => {
               </div>
             )) || (
               <div className="text-center py-4 text-gray-500">
-                Chưa có dữ liệu sản phẩm
+                No product data available
               </div>
             )}
           </div>
@@ -303,28 +303,28 @@ const Analytics = () => {
 
       {/* Detailed Reports */}
       <div className="bg-white rounded-lg shadow-sm p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Báo cáo chi tiết</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Detailed Reports</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="text-center p-4 border border-gray-200 rounded-lg">
             <DollarSign className="w-8 h-8 text-green-500 mx-auto mb-2" />
-            <h3 className="font-medium text-gray-900">Tỷ lệ chuyển đổi</h3>
+            <h3 className="font-medium text-gray-900">Conversion Rate</h3>
             <p className="text-2xl font-bold text-green-600">3.2%</p>
-            <p className="text-sm text-gray-500">+0.5% so với tháng trước</p>
+            <p className="text-sm text-gray-500">+0.5% vs last month</p>
           </div>
           
           <div className="text-center p-4 border border-gray-200 rounded-lg">
             <ShoppingCart className="w-8 h-8 text-blue-500 mx-auto mb-2" />
-            <h3 className="font-medium text-gray-900">Tỷ lệ bỏ giỏ hàng</h3>
+            <h3 className="font-medium text-gray-900">Cart Abandonment Rate</h3>
             <p className="text-2xl font-bold text-blue-600">68.5%</p>
-            <p className="text-sm text-gray-500">-2.1% so với tháng trước</p>
+            <p className="text-sm text-gray-500">-2.1% vs last month</p>
           </div>
           
           <div className="text-center p-4 border border-gray-200 rounded-lg">
             <Users className="w-8 h-8 text-purple-500 mx-auto mb-2" />
-            <h3 className="font-medium text-gray-900">Khách hàng quay lại</h3>
+            <h3 className="font-medium text-gray-900">Returning Customers</h3>
             <p className="text-2xl font-bold text-purple-600">24.8%</p>
-            <p className="text-sm text-gray-500">+1.3% so với tháng trước</p>
+            <p className="text-sm text-gray-500">+1.3% vs last month</p>
           </div>
         </div>
       </div>

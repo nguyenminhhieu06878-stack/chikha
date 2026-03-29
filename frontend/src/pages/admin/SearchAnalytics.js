@@ -27,7 +27,7 @@ const SearchAnalytics = () => {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Search Analytics</h1>
           <p className="text-gray-600 mt-1">
-            Phân tích từ khóa tìm kiếm và xu hướng người dùng
+            Search keyword analysis and user trends
           </p>
         </div>
       </div>
@@ -38,7 +38,7 @@ const SearchAnalytics = () => {
           <div className="card-content">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Tổng tìm kiếm</p>
+                <p className="text-sm text-gray-600">Total Searches</p>
                 <p className="text-2xl font-bold text-gray-900 mt-1">
                   {stats.total_searches?.toLocaleString() || 0}
                 </p>
@@ -54,7 +54,7 @@ const SearchAnalytics = () => {
           <div className="card-content">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Từ khóa duy nhất</p>
+                <p className="text-sm text-gray-600">Unique Keywords</p>
                 <p className="text-2xl font-bold text-gray-900 mt-1">
                   {stats.unique_queries?.toLocaleString() || 0}
                 </p>
@@ -70,7 +70,7 @@ const SearchAnalytics = () => {
           <div className="card-content">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Trung bình kết quả</p>
+                <p className="text-sm text-gray-600">Avg. Results</p>
                 <p className="text-2xl font-bold text-gray-900 mt-1">
                   {stats.avg_results?.toFixed(1) || 0}
                 </p>
@@ -87,13 +87,13 @@ const SearchAnalytics = () => {
       <div className="card">
         <div className="card-header">
           <h2 className="text-xl font-bold text-gray-900">
-            Top 20 từ khóa phổ biến
+            Top 20 Popular Keywords
           </h2>
         </div>
         <div className="card-content">
           {topSearches.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
-              Chưa có dữ liệu tìm kiếm
+              No search data available
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -104,16 +104,16 @@ const SearchAnalytics = () => {
                       #
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Từ khóa
+                      Keyword
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Số lần tìm
+                      Search Count
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Trung bình kết quả
+                      Avg. Results
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Xu hướng
+                      Trend
                     </th>
                   </tr>
                 </thead>
@@ -162,13 +162,13 @@ const SearchAnalytics = () => {
       <div className="card">
         <div className="card-header">
           <h2 className="text-xl font-bold text-gray-900">
-            Tìm kiếm gần đây
+            Recent Searches
           </h2>
         </div>
         <div className="card-content">
           {recentSearches.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
-              Chưa có dữ liệu
+              No data available
             </div>
           ) : (
             <div className="space-y-3">
@@ -182,8 +182,8 @@ const SearchAnalytics = () => {
                     <span className="text-sm text-gray-900">{item.query}</span>
                   </div>
                   <div className="flex items-center space-x-4 text-sm text-gray-500">
-                    <span>{item.results_count} kết quả</span>
-                    <span>{new Date(item.created_at).toLocaleString('vi-VN')}</span>
+                    <span>{item.results_count} results</span>
+                    <span>{new Date(item.created_at).toLocaleString('en-US')}</span>
                   </div>
                 </div>
               ))}

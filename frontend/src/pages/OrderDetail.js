@@ -71,11 +71,11 @@ const OrderDetail = () => {
 
   const getStatusText = (status) => {
     const texts = {
-      pending: 'Chờ xử lý',
-      processing: 'Đang xử lý',
-      shipped: 'Đã gửi hàng',
-      delivered: 'Đã giao hàng',
-      cancelled: 'Đã hủy'
+      pending: 'Pending',
+      processing: 'Processing',
+      shipped: 'Shipped',
+      delivered: 'Delivered',
+      cancelled: 'Cancelled'
     };
     return texts[status] || status;
   };
@@ -104,13 +104,13 @@ const OrderDetail = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center py-12">
           <Package className="w-24 h-24 text-gray-300 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Không tìm thấy đơn hàng</h2>
-          <p className="text-gray-600 mb-8">Đơn hàng không tồn tại hoặc bạn không có quyền xem.</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Order not found</h2>
+          <p className="text-gray-600 mb-8">The order does not exist or you do not have permission to view it.</p>
           <button
             onClick={() => navigate('/orders')}
             className="btn-primary"
           >
-            Quay lại danh sách đơn hàng
+            Back to order list
           </button>
         </div>
       </div>
@@ -127,14 +127,14 @@ const OrderDetail = () => {
             className="btn-outline flex items-center space-x-2"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Quay lại</span>
+            <span>Back</span>
           </button>
           <div>
             <h1 className="text-3xl font-bold text-gray-900">
-              Chi tiết đơn hàng
+              Order Details
             </h1>
             <p className="text-gray-600 mt-1">
-              {order?.id ? `ORD${String(order.id).padStart(8, '0')}` : 'Đang tải...'}
+              {order?.id ? `ORD${String(order.id).padStart(8, '0')}` : 'Loading...'}
             </p>
           </div>
         </div>
@@ -142,7 +142,7 @@ const OrderDetail = () => {
         <div className="flex items-center space-x-3">
           {order?.status && getStatusIcon(order.status)}
           <span className={`px-4 py-2 rounded-full text-sm font-medium ${order?.status ? getStatusColor(order.status) : 'bg-gray-100 text-gray-800'}`}>
-            {order?.status ? getStatusText(order.status) : 'Đang tải...'}
+            {order?.status ? getStatusText(order.status) : 'Loading...'}
           </span>
         </div>
       </div>
@@ -152,7 +152,7 @@ const OrderDetail = () => {
         <div className="lg:col-span-2 space-y-6">
           <div className="card">
             <div className="card-header">
-              <h2 className="text-xl font-semibold text-gray-900">Sản phẩm đã đặt</h2>
+              <h2 className="text-xl font-semibold text-gray-900">Ordered Products</h2>
             </div>
             <div className="card-content">
               <div className="space-y-4">
@@ -165,13 +165,13 @@ const OrderDetail = () => {
                         className="w-20 h-20 object-cover rounded-lg"
                       />
                       <div className="flex-1">
-                        <h3 className="font-medium text-gray-900">{item.product_name || 'Sản phẩm'}</h3>
+                        <h3 className="font-medium text-gray-900">{item.product_name || 'Product'}</h3>
                         <p className="text-sm text-gray-500 mt-1">
-                          {item.category_name || 'Danh mục'}
+                          {item.category_name || 'Category'}
                         </p>
                         <div className="flex items-center justify-between mt-2">
                           <span className="text-sm text-gray-600">
-                            Số lượng: {item.quantity}
+                            Quantity: {item.quantity}
                           </span>
                           <span className="font-medium text-gray-900">
                             {formatPrice(item.price)} × {item.quantity}
@@ -188,7 +188,7 @@ const OrderDetail = () => {
                 ) : (
                   <div className="text-center py-8">
                     <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-500">Không có sản phẩm trong đơn hàng này</p>
+                    <p className="text-gray-500">No products in this order</p>
                   </div>
                 )}
               </div>
@@ -198,7 +198,7 @@ const OrderDetail = () => {
           {/* Order Timeline */}
           <div className="card">
             <div className="card-header">
-              <h2 className="text-xl font-semibold text-gray-900">Trạng thái đơn hàng</h2>
+              <h2 className="text-xl font-semibold text-gray-900">Order Status</h2>
             </div>
             <div className="card-content">
               <div className="space-y-4">
@@ -207,7 +207,7 @@ const OrderDetail = () => {
                     <CheckCircle className="w-5 h-5 text-green-600" />
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">Đơn hàng đã được tạo</p>
+                    <p className="font-medium text-gray-900">Order created</p>
                     <p className="text-sm text-gray-500">{order?.created_at ? formatDateTime(order.created_at) : ''}</p>
                   </div>
                 </div>
@@ -218,8 +218,8 @@ const OrderDetail = () => {
                       <Package className="w-5 h-5 text-blue-600" />
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900">Đang xử lý</p>
-                      <p className="text-sm text-gray-500">Đơn hàng đang được chuẩn bị</p>
+                      <p className="font-medium text-gray-900">Processing</p>
+                      <p className="text-sm text-gray-500">Order is being prepared</p>
                     </div>
                   </div>
                 )}
@@ -230,9 +230,9 @@ const OrderDetail = () => {
                       <Truck className="w-5 h-5 text-purple-600" />
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900">Đã gửi hàng</p>
+                      <p className="font-medium text-gray-900">Shipped</p>
                       <p className="text-sm text-gray-500">
-                        {order?.shipped_at ? formatDateTime(order.shipped_at) : 'Đang vận chuyển'}
+                        {order?.shipped_at ? formatDateTime(order.shipped_at) : 'In transit'}
                       </p>
                     </div>
                   </div>
@@ -244,9 +244,9 @@ const OrderDetail = () => {
                       <CheckCircle className="w-5 h-5 text-green-600" />
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900">Đã giao hàng</p>
+                      <p className="font-medium text-gray-900">Delivered</p>
                       <p className="text-sm text-gray-500">
-                        {order?.delivered_at ? formatDateTime(order.delivered_at) : 'Đã hoàn thành'}
+                        {order?.delivered_at ? formatDateTime(order.delivered_at) : 'Completed'}
                       </p>
                     </div>
                   </div>
@@ -261,13 +261,13 @@ const OrderDetail = () => {
           {/* Order Info */}
           <div className="card">
             <div className="card-header">
-              <h2 className="text-xl font-semibold text-gray-900">Thông tin đơn hàng</h2>
+              <h2 className="text-xl font-semibold text-gray-900">Order Information</h2>
             </div>
             <div className="card-content space-y-4">
               <div className="flex items-center space-x-3">
                 <Calendar className="w-5 h-5 text-gray-400" />
                 <div>
-                  <p className="text-sm text-gray-600">Ngày đặt hàng</p>
+                  <p className="text-sm text-gray-600">Order Date</p>
                   <p className="font-medium">{order?.created_at ? formatDateTime(order.created_at) : ''}</p>
                 </div>
               </div>
@@ -275,12 +275,12 @@ const OrderDetail = () => {
               <div className="flex items-center space-x-3">
                 <CreditCard className="w-5 h-5 text-gray-400" />
                 <div>
-                  <p className="text-sm text-gray-600">Phương thức thanh toán</p>
+                  <p className="text-sm text-gray-600">Payment Method</p>
                   <p className="font-medium">
-                    {order?.payment_method === 'cod' ? 'Thanh toán khi nhận hàng' : 
-                     order?.payment_method === 'cash' ? 'Thanh toán khi nhận hàng' :
-                     order?.payment_method === 'bank_transfer' ? 'Chuyển khoản' : 
-                     order?.payment_method?.toUpperCase() || 'Chưa xác định'}
+                    {order?.payment_method === 'cod' ? 'Cash on Delivery' : 
+                     order?.payment_method === 'cash' ? 'Cash on Delivery' :
+                     order?.payment_method === 'bank_transfer' ? 'Bank Transfer' : 
+                     order?.payment_method?.toUpperCase() || 'Not specified'}
                   </p>
                 </div>
               </div>
@@ -292,7 +292,7 @@ const OrderDetail = () => {
             <div className="card-header">
               <h2 className="text-xl font-semibold text-gray-900 flex items-center">
                 <MapPin className="w-5 h-5 mr-2" />
-                Địa chỉ giao hàng
+                Shipping Address
               </h2>
             </div>
             <div className="card-content">
@@ -311,7 +311,7 @@ const OrderDetail = () => {
                     <p className="font-medium mt-2">{order.shipping_city}</p>
                   )}
                   {!order?.shipping_address && !order?.shipping_city && (
-                    <p className="text-gray-400 italic">Chưa có địa chỉ giao hàng</p>
+                    <p className="text-gray-400 italic">No shipping address available</p>
                   )}
                 </div>
               </div>
@@ -321,25 +321,25 @@ const OrderDetail = () => {
           {/* Order Total */}
           <div className="card">
             <div className="card-header">
-              <h2 className="text-xl font-semibold text-gray-900">Tóm tắt đơn hàng</h2>
+              <h2 className="text-xl font-semibold text-gray-900">Order Summary</h2>
             </div>
             <div className="card-content space-y-3">
               <div className="flex justify-between">
-                <span className="text-gray-600">Tạm tính:</span>
+                <span className="text-gray-600">Subtotal:</span>
                 <span className="font-medium">{order?.subtotal ? formatPrice(order.subtotal) : formatPrice(order?.total_amount || 0)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Phí vận chuyển:</span>
-                <span className="font-medium text-green-600">Miễn phí</span>
+                <span className="text-gray-600">Shipping:</span>
+                <span className="font-medium text-green-600">Free</span>
               </div>
               {order?.discount_amount > 0 && (
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Giảm giá:</span>
+                  <span className="text-gray-600">Discount:</span>
                   <span className="font-medium text-red-600">-{formatPrice(order?.discount_amount || 0)}</span>
                 </div>
               )}
               <div className="border-t pt-3 flex justify-between text-lg font-bold">
-                <span>Tổng cộng:</span>
+                <span>Total:</span>
                 <span className="text-blue-600">{formatPrice(order?.total_amount || 0)}</span>
               </div>
             </div>
@@ -350,7 +350,7 @@ const OrderDetail = () => {
             <div className="card">
               <div className="card-content">
                 <button className="w-full btn-outline text-red-600 border-red-200 hover:bg-red-50">
-                  Hủy đơn hàng
+                  Cancel Order
                 </button>
               </div>
             </div>

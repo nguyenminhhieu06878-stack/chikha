@@ -15,14 +15,14 @@ const ReviewForm = ({ productId, onSuccess, onCancel, existingReview = null }) =
     
     // Validate number of images
     if (images.length + files.length > 5) {
-      setError('Bạn chỉ có thể upload tối đa 5 hình ảnh');
+      setError('You can only upload up to 5 images');
       return;
     }
 
     // Validate file size (5MB max)
     const invalidFiles = files.filter(file => file.size > 5 * 1024 * 1024);
     if (invalidFiles.length > 0) {
-      setError('Mỗi hình ảnh phải nhỏ hơn 5MB');
+      setError('Each image must be smaller than 5MB');
       return;
     }
 
@@ -30,7 +30,7 @@ const ReviewForm = ({ productId, onSuccess, onCancel, existingReview = null }) =
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
     const invalidTypes = files.filter(file => !validTypes.includes(file.type));
     if (invalidTypes.length > 0) {
-      setError('Chỉ chấp nhận file ảnh (JPEG, PNG, GIF, WebP)');
+      setError('Only image files are accepted (JPEG, PNG, GIF, WebP)');
       return;
     }
 
@@ -78,7 +78,7 @@ const ReviewForm = ({ productId, onSuccess, onCancel, existingReview = null }) =
 
       onSuccess();
     } catch (err) {
-      setError(err.response?.data?.error || 'Không thể gửi đánh giá');
+      setError(err.response?.data?.error || 'Unable to submit review');
     } finally {
       setLoading(false);
     }
@@ -95,7 +95,7 @@ const ReviewForm = ({ productId, onSuccess, onCancel, existingReview = null }) =
       {/* Rating */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Đánh giá của bạn *
+          Your Rating *
         </label>
         <div className="flex items-center space-x-2">
           {[1, 2, 3, 4, 5].map((star) => (
@@ -115,7 +115,7 @@ const ReviewForm = ({ productId, onSuccess, onCancel, existingReview = null }) =
             </button>
           ))}
           <span className="text-sm text-gray-600 ml-2">
-            {rating} sao
+            {rating} stars
           </span>
         </div>
       </div>
@@ -123,7 +123,7 @@ const ReviewForm = ({ productId, onSuccess, onCancel, existingReview = null }) =
       {/* Comment */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Nhận xét của bạn *
+          Your Review *
         </label>
         <textarea
           value={comment}
@@ -132,20 +132,20 @@ const ReviewForm = ({ productId, onSuccess, onCancel, existingReview = null }) =
           required
           minLength={10}
           className="input"
-          placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm này (tối thiểu 10 ký tự)..."
+          placeholder="Share your experience with this product (minimum 10 characters)..."
         />
         <p className="text-xs text-gray-500 mt-1">
-          {comment.length}/10 ký tự tối thiểu
+          {comment.length}/10 minimum characters
         </p>
       </div>
 
       {/* Image Upload */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Hình ảnh (tùy chọn)
+          Images (optional)
         </label>
         <p className="text-xs text-gray-500 mb-2">
-          Tối đa 5 hình ảnh, mỗi ảnh không quá 5MB
+          Up to 5 images, each no more than 5MB
         </p>
 
         {/* Image Previews */}
@@ -176,10 +176,10 @@ const ReviewForm = ({ productId, onSuccess, onCancel, existingReview = null }) =
             <div className="text-center">
               <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
               <p className="text-sm text-gray-600">
-                Click để chọn ảnh
+                Click to select images
               </p>
               <p className="text-xs text-gray-500">
-                hoặc kéo thả ảnh vào đây
+                or drag and drop images here
               </p>
             </div>
             <input
@@ -200,14 +200,14 @@ const ReviewForm = ({ productId, onSuccess, onCancel, existingReview = null }) =
           disabled={loading || comment.length < 10}
           className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? 'Đang gửi...' : 'Gửi đánh giá'}
+          {loading ? 'Submitting...' : 'Submit Review'}
         </button>
         <button
           type="button"
           onClick={onCancel}
           className="btn-outline"
         >
-          Hủy
+          Cancel
         </button>
       </div>
     </form>

@@ -109,9 +109,9 @@ const Dashboard = () => {
       <div className="flex justify-center items-center h-64">
         <div className="text-center">
           <Activity className="w-12 h-12 mx-auto mb-4 text-red-500" />
-          <p className="text-red-600 mb-2">Không thể tải dữ liệu dashboard</p>
+          <p className="text-red-600 mb-2">Unable to load dashboard data</p>
           <p className="text-sm text-gray-500">
-            {dashboardError?.message || 'Lỗi không xác định'}
+            {dashboardError?.message || 'Unknown error'}
           </p>
         </div>
       </div>
@@ -146,11 +146,11 @@ const Dashboard = () => {
   ];
 
   const sampleCategoryData = [
-    { name: 'Điện thoại', value: 35, color: '#3B82F6' },
+    { name: 'Phones', value: 35, color: '#3B82F6' },
     { name: 'Laptop', value: 25, color: '#10B981' },
-    { name: 'Phụ kiện', value: 20, color: '#F59E0B' },
+    { name: 'Accessories', value: 20, color: '#F59E0B' },
     { name: 'Tablet', value: 15, color: '#EF4444' },
-    { name: 'Khác', value: 5, color: '#8B5CF6' }
+    { name: 'Other', value: 5, color: '#8B5CF6' }
   ];
 
   // Use real data if available, otherwise use sample data
@@ -159,47 +159,47 @@ const Dashboard = () => {
   // Stats cards data - use dashboard data with time range info
   const stats = [
     {
-      title: 'Tổng người dùng',
+      title: 'Total Users',
       value: overview.totalUsers || 0,
       icon: Users,
       color: 'bg-blue-500',
-      change: `+${overview.recentUsers || 0} mới`,
+      change: `+${overview.recentUsers || 0} new`,
       period: getTimeRangeLabel(timeRange)
     },
     {
-      title: 'Tổng sản phẩm',
+      title: 'Total Products',
       value: overview.totalProducts || 0,
       icon: Package,
       color: 'bg-green-500',
       change: '+5%',
-      period: 'so với tháng trước'
+      period: 'vs last month'
     },
     {
-      title: `Đơn hàng (${getTimeRangeLabel(timeRange)})`,
+      title: `Orders (${getTimeRangeLabel(timeRange)})`,
       value: overview.recentOrders || 0,
       icon: ShoppingCart,
       color: 'bg-yellow-500',
-      change: `${overview.totalOrders || 0} tổng`,
-      period: 'tất cả thời gian'
+      change: `${overview.totalOrders || 0} total`,
+      period: 'all time'
     },
     {
-      title: `Doanh thu (${getTimeRangeLabel(timeRange)})`,
-      value: `${(overview.recentRevenue || 0).toLocaleString('vi-VN')} ₫`,
+      title: `Revenue (${getTimeRangeLabel(timeRange)})`,
+      value: `${(overview.recentRevenue || 0).toLocaleString('en-US')} ₫`,
       icon: DollarSign,
       color: 'bg-purple-500',
-      change: `${(overview.totalRevenue || 0).toLocaleString('vi-VN')} ₫ tổng`,
-      period: 'tất cả thời gian'
+      change: `${(overview.totalRevenue || 0).toLocaleString('en-US')} ₫ total`,
+      period: 'all time'
     }
   ];
 
   // Helper function to get time range label
   function getTimeRangeLabel(range) {
     switch (range) {
-      case '1d': return 'Hôm nay';
-      case '7d': return '7 ngày';
-      case '30d': return '30 ngày';
-      case '3m': return '3 tháng';
-      default: return '7 ngày';
+      case '1d': return 'Today';
+      case '7d': return '7 days';
+      case '30d': return '30 days';
+      case '3m': return '3 months';
+      default: return '7 days';
     }
   }
 
@@ -209,7 +209,7 @@ const Dashboard = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600">Tổng quan hệ thống quản trị</p>
+          <p className="text-gray-600">Admin system overview</p>
         </div>
         
         <div className="flex items-center space-x-4">
@@ -249,7 +249,7 @@ const Dashboard = () => {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="p-6 border-b border-gray-200 flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Doanh thu theo thời gian</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Revenue Over Time</h2>
               <p className="text-sm text-gray-600">{getTimeRangeLabel(chartTimeRange)}</p>
             </div>
             <TimeRangeSelector
@@ -267,11 +267,11 @@ const Dashboard = () => {
                   tickFormatter={(value) => {
                     const date = new Date(value);
                     if (chartTimeRange === '1d') {
-                      return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+                      return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
                     } else if (chartTimeRange === '3m') {
-                      return date.toLocaleDateString('vi-VN', { month: 'short', day: 'numeric' });
+                      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                     }
-                    return date.toLocaleDateString('vi-VN', { month: 'short', day: 'numeric' });
+                    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                   }}
                 />
                 <YAxis 
@@ -279,15 +279,15 @@ const Dashboard = () => {
                 />
                 <Tooltip 
                   formatter={(value, name) => [
-                    name === 'revenue' ? `${value.toLocaleString('vi-VN')} ₫` : value,
-                    name === 'revenue' ? 'Doanh thu' : 'Đơn hàng'
+                    name === 'revenue' ? `${value.toLocaleString('en-US')} ₫` : value,
+                    name === 'revenue' ? 'Revenue' : 'Orders'
                   ]}
                   labelFormatter={(value) => {
                     const date = new Date(value);
                     if (chartTimeRange === '1d') {
-                      return date.toLocaleString('vi-VN');
+                      return date.toLocaleString('en-US');
                     }
-                    return date.toLocaleDateString('vi-VN');
+                    return date.toLocaleDateString('en-US');
                   }}
                 />
                 <Area 
@@ -306,17 +306,17 @@ const Dashboard = () => {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="p-6 border-b border-gray-200 flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Phân bố danh mục</h2>
-              <p className="text-sm text-gray-600">Tỷ lệ bán hàng theo danh mục</p>
+              <h2 className="text-lg font-semibold text-gray-900">Category Distribution</h2>
+              <p className="text-sm text-gray-600">Sales ratio by category</p>
             </div>
             <TimeRangeSelector
               value={categoryTimeRange}
               onChange={setCategoryTimeRange}
               options={[
-                { value: '7d', label: '7 ngày' },
-                { value: '30d', label: '30 ngày' },
-                { value: '3m', label: '3 tháng' },
-                { value: 'all', label: 'Tất cả' }
+                { value: '7d', label: '7 days' },
+                { value: '30d', label: '30 days' },
+                { value: '3m', label: '3 months' },
+                { value: 'all', label: 'All' }
               ]}
               size="sm"
             />
@@ -349,8 +349,8 @@ const Dashboard = () => {
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         <div className="p-6 border-b border-gray-200 flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Đơn hàng và Doanh thu</h2>
-            <p className="text-sm text-gray-600">Biểu đồ kết hợp theo thời gian</p>
+            <h2 className="text-lg font-semibold text-gray-900">Orders and Revenue</h2>
+            <p className="text-sm text-gray-600">Combined chart over time</p>
           </div>
           <TimeRangeSelector
             value={chartTimeRange}
@@ -367,37 +367,37 @@ const Dashboard = () => {
                 tickFormatter={(value) => {
                   const date = new Date(value);
                   if (chartTimeRange === '1d') {
-                    return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+                    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
                   } else if (chartTimeRange === '3m') {
-                    return date.toLocaleDateString('vi-VN', { month: 'short', day: 'numeric' });
+                    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                   }
-                  return date.toLocaleDateString('vi-VN', { month: 'short', day: 'numeric' });
+                  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                 }}
               />
               <YAxis yAxisId="left" tickFormatter={(value) => `${(value / 1000000).toFixed(0)}M`} />
               <YAxis yAxisId="right" orientation="right" />
               <Tooltip 
                 formatter={(value, name) => [
-                  name === 'revenue' ? `${value.toLocaleString('vi-VN')} ₫` : `${value} đơn`,
-                  name === 'revenue' ? 'Doanh thu' : 'Đơn hàng'
+                  name === 'revenue' ? `${value.toLocaleString('en-US')} ₫` : `${value} orders`,
+                  name === 'revenue' ? 'Revenue' : 'Orders'
                 ]}
                 labelFormatter={(value) => {
                   const date = new Date(value);
                   if (chartTimeRange === '1d') {
-                    return date.toLocaleString('vi-VN');
+                    return date.toLocaleString('en-US');
                   }
-                  return date.toLocaleDateString('vi-VN');
+                  return date.toLocaleDateString('en-US');
                 }}
               />
               <Legend />
-              <Bar yAxisId="right" dataKey="orders" fill="#10B981" name="Đơn hàng" />
+              <Bar yAxisId="right" dataKey="orders" fill="#10B981" name="Orders" />
               <Line 
                 yAxisId="left" 
                 type="monotone" 
                 dataKey="revenue" 
                 stroke="#3B82F6" 
                 strokeWidth={3}
-                name="Doanh thu"
+                name="Revenue"
               />
             </LineChart>
           </ResponsiveContainer>
@@ -409,24 +409,24 @@ const Dashboard = () => {
         {/* System Info */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="p-6 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">Thông tin hệ thống</h2>
+            <h2 className="text-lg font-semibold text-gray-900">System Information</h2>
           </div>
           <div className="p-6">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-gray-600">Tổng người dùng</span>
+                <span className="text-gray-600">Total Users</span>
                 <span className="font-medium text-gray-900">{overview.totalUsers || 0}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-gray-600">Tổng sản phẩm</span>
+                <span className="text-gray-600">Total Products</span>
                 <span className="font-medium text-gray-900">{overview.totalProducts || 0}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-gray-600">Tổng đơn hàng</span>
+                <span className="text-gray-600">Total Orders</span>
                 <span className="font-medium text-gray-900">{overview.totalOrders || 0}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-gray-600">Đơn hàng gần đây</span>
+                <span className="text-gray-600">Recent Orders</span>
                 <span className="font-medium text-gray-900">{overview.recentOrders || 0}</span>
               </div>
               <div className="flex items-center justify-between">
@@ -445,16 +445,16 @@ const Dashboard = () => {
           <div className="p-6">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-gray-600">Doanh thu tổng</span>
+                <span className="text-gray-600">Total Revenue</span>
                 <span className="font-medium text-green-600">
-                  {(overview.totalRevenue || 0).toLocaleString('vi-VN')} ₫
+                  {(overview.totalRevenue || 0).toLocaleString('en-US')} ₫
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-gray-600">Giá trị đơn hàng TB</span>
+                <span className="text-gray-600">Average Order Value</span>
                 <span className="font-medium text-gray-900">
                   {overview.totalOrders > 0 
-                    ? ((overview.totalRevenue || 0) / overview.totalOrders).toLocaleString('vi-VN') 
+                    ? ((overview.totalRevenue || 0) / overview.totalOrders).toLocaleString('en-US') 
                     : 0} ₫
                 </span>
               </div>
@@ -467,9 +467,9 @@ const Dashboard = () => {
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-gray-600">Trạng thái hệ thống</span>
+                <span className="text-gray-600">System Status</span>
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                  Hoạt động tốt
+                  Running well
                 </span>
               </div>
             </div>
@@ -486,18 +486,18 @@ const Dashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left transition-colors">
               <Package className="w-8 h-8 text-blue-500 mb-2" />
-              <h3 className="font-medium text-gray-900">Quản lý sản phẩm</h3>
-              <p className="text-sm text-gray-600">Thêm, sửa, xóa sản phẩm</p>
+              <h3 className="font-medium text-gray-900">Product Management</h3>
+              <p className="text-sm text-gray-600">Add, edit, delete products</p>
             </button>
             <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left transition-colors">
               <Users className="w-8 h-8 text-green-500 mb-2" />
-              <h3 className="font-medium text-gray-900">Quản lý người dùng</h3>
-              <p className="text-sm text-gray-600">Xem và quản lý tài khoản</p>
+              <h3 className="font-medium text-gray-900">User Management</h3>
+              <p className="text-sm text-gray-600">View and manage accounts</p>
             </button>
             <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left transition-colors">
               <ShoppingCart className="w-8 h-8 text-purple-500 mb-2" />
-              <h3 className="font-medium text-gray-900">Quản lý đơn hàng</h3>
-              <p className="text-sm text-gray-600">Xử lý và theo dõi đơn hàng</p>
+              <h3 className="font-medium text-gray-900">Order Management</h3>
+              <p className="text-sm text-gray-600">Process and track orders</p>
             </button>
           </div>
         </div>

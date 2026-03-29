@@ -53,7 +53,7 @@ const ProductCard = ({ product }) => {
     e.stopPropagation();
 
     if (!isAuthenticated) {
-      toast.error('Vui lòng đăng nhập để thêm vào wishlist');
+      toast.error('Please login to add to wishlist');
       return;
     }
 
@@ -62,15 +62,15 @@ const ProductCard = ({ product }) => {
       if (inWishlist) {
         await api.delete(`/wishlist/product/${product.id}`);
         setInWishlist(false);
-        toast.success('Đã xóa khỏi wishlist');
+        toast.success('Removed from wishlist');
       } else {
         await api.post('/wishlist', { product_id: product.id });
         setInWishlist(true);
-        toast.success('Đã thêm vào wishlist');
+        toast.success('Added to wishlist');
       }
     } catch (error) {
       console.error('Error toggling wishlist:', error);
-      toast.error('Không thể cập nhật wishlist');
+      toast.error('Unable to update wishlist');
     } finally {
       setWishlistLoading(false);
     }
@@ -134,7 +134,7 @@ const ProductCard = ({ product }) => {
             onClick={handleToggleWishlist}
             disabled={wishlistLoading}
             className="absolute top-1 sm:top-2 right-1 sm:right-2 bg-white p-1.5 sm:p-2 rounded-full shadow-md hover:bg-gray-50 transition-colors disabled:opacity-50"
-            title={inWishlist ? 'Xóa khỏi wishlist' : 'Thêm vào wishlist'}
+            title={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
           >
             <Heart 
               className={`w-4 h-4 sm:w-5 sm:h-5 ${inWishlist ? 'text-red-500 fill-current' : 'text-gray-600'}`}

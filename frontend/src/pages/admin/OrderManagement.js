@@ -45,7 +45,7 @@ const OrderManagement = () => {
       
       setError(null);
     } catch (err) {
-      setError('Không thể tải danh sách đơn hàng');
+      setError('Unable to load order list');
       console.error('Error fetching orders:', err);
       setOrders([]);
       setTotalPages(1);
@@ -64,7 +64,7 @@ const OrderManagement = () => {
       await adminAPI.updateOrderStatus(orderId, { status: newStatus });
       fetchOrders();
     } catch (err) {
-      setError('Không thể cập nhật trạng thái đơn hàng');
+      setError('Unable to update order status');
       console.error('Error updating order status:', err);
     }
   };
@@ -88,24 +88,24 @@ const OrderManagement = () => {
 
   const getStatusText = (status) => {
     const statusMap = {
-      pending: 'Chờ xử lý',
-      processing: 'Đang xử lý',
-      shipped: 'Đã gửi hàng',
-      delivered: 'Đã giao hàng',
-      cancelled: 'Đã hủy'
+      pending: 'Pending',
+      processing: 'Processing',
+      shipped: 'Shipped',
+      delivered: 'Delivered',
+      cancelled: 'Cancelled'
     };
     return statusMap[status] || status;
   };
 
   const formatPrice = (price) => {
-    return new Intl.NumberFormat('vi-VN', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'VND',
+      currency: 'USD',
     }).format(price);
   };
 
   const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('vi-VN', {
+    return new Date(date).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -125,7 +125,7 @@ const OrderManagement = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Quản lý đơn hàng</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Order Management</h1>
       </div>
 
       {error && (
@@ -140,19 +140,19 @@ const OrderManagement = () => {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <Filter className="w-4 h-4 inline mr-1" />
-              Trạng thái
+              Status
             </label>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="all">Tất cả trạng thái</option>
-              <option value="pending">Chờ xử lý</option>
-              <option value="processing">Đang xử lý</option>
-              <option value="shipped">Đã gửi hàng</option>
-              <option value="delivered">Đã giao hàng</option>
-              <option value="cancelled">Đã hủy</option>
+              <option value="all">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="processing">Processing</option>
+              <option value="shipped">Shipped</option>
+              <option value="delivered">Delivered</option>
+              <option value="cancelled">Cancelled</option>
             </select>
           </div>
         </div>
@@ -164,22 +164,22 @@ const OrderManagement = () => {
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Đơn hàng
+                Order
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Khách hàng
+                Customer
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Tổng tiền
+                Total
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Trạng thái
+                Status
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Ngày tạo
+                Date
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Thao tác
+                Actions
               </th>
             </tr>
           </thead>
@@ -191,12 +191,12 @@ const OrderManagement = () => {
                     #{String(order.id).padStart(8, '0')}
                   </div>
                   <div className="text-sm text-gray-500">
-                    {order.order_items?.length || 0} sản phẩm
+                    {order.order_items?.length || 0} items
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm font-medium text-gray-900">
-                    {order.users?.full_name || 'Khách hàng'}
+                    {order.users?.full_name || 'Customer'}
                   </div>
                   <div className="text-sm text-gray-500">
                     {order.users?.email}
@@ -218,7 +218,7 @@ const OrderManagement = () => {
                     <button
                       onClick={() => navigate(`/admin/orders/${order.id}`)}
                       className="text-blue-600 hover:text-blue-900"
-                      title="Xem chi tiết"
+                      title="View Details"
                     >
                       <Eye className="w-4 h-4" />
                     </button>
@@ -227,7 +227,7 @@ const OrderManagement = () => {
                       <button
                         onClick={() => handleStatusUpdate(order.id, 'processing')}
                         className="text-purple-600 hover:text-purple-900"
-                        title="Bắt đầu xử lý"
+                        title="Start Processing"
                       >
                         <Package className="w-4 h-4" />
                       </button>
@@ -237,7 +237,7 @@ const OrderManagement = () => {
                       <button
                         onClick={() => handleStatusUpdate(order.id, 'shipped')}
                         className="text-indigo-600 hover:text-indigo-900"
-                        title="Gửi hàng"
+                        title="Ship Order"
                       >
                         <Truck className="w-4 h-4" />
                       </button>
@@ -247,7 +247,7 @@ const OrderManagement = () => {
                       <button
                         onClick={() => handleStatusUpdate(order.id, 'delivered')}
                         className="text-green-600 hover:text-green-900"
-                        title="Đã giao hàng"
+                        title="Delivered"
                       >
                         <CheckCircle className="w-4 h-4" />
                       </button>
@@ -257,7 +257,7 @@ const OrderManagement = () => {
                       <button
                         onClick={() => handleStatusUpdate(order.id, 'cancelled')}
                         className="text-red-600 hover:text-red-900"
-                        title="Hủy đơn hàng"
+                        title="Cancel Order"
                       >
                         <XCircle className="w-4 h-4" />
                       </button>
@@ -271,7 +271,7 @@ const OrderManagement = () => {
 
         {orders.length === 0 && !loading && (
           <div className="text-center py-8 text-gray-500">
-            Không tìm thấy đơn hàng nào
+            No orders found
           </div>
         )}
       </div>
@@ -284,11 +284,11 @@ const OrderManagement = () => {
             disabled={currentPage === 1}
             className="px-3 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
           >
-            Trước
+            Previous
           </button>
           
           <span className="px-3 py-2 text-sm text-gray-700">
-            Trang {currentPage} / {totalPages}
+            Page {currentPage} / {totalPages}
           </span>
           
           <button
@@ -296,7 +296,7 @@ const OrderManagement = () => {
             disabled={currentPage === totalPages}
             className="px-3 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
           >
-            Sau
+            Next
           </button>
         </div>
       )}

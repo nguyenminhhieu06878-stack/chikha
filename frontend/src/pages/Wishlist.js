@@ -33,17 +33,17 @@ const Wishlist = () => {
       setWishlist(wishlist.filter(item => item.id !== id));
     } catch (error) {
       console.error('Error removing from wishlist:', error);
-      alert('Không thể xóa khỏi wishlist');
+      alert('Unable to remove from wishlist');
     }
   };
 
   const handleAddToCart = async (product) => {
     try {
       await addToCart(product.product_id, 1);
-      alert('Đã thêm vào giỏ hàng!');
+      alert('Added to cart!');
     } catch (error) {
       console.error('Error adding to cart:', error);
-      alert('Không thể thêm vào giỏ hàng');
+      alert('Unable to add to cart');
     }
   };
 
@@ -56,13 +56,13 @@ const Wishlist = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
         <Heart className="w-16 h-16 mx-auto text-gray-400 mb-4" />
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Vui lòng đăng nhập
+          Please login
         </h2>
         <p className="text-gray-600 mb-6">
-          Bạn cần đăng nhập để xem danh sách yêu thích
+          You need to login to view your wishlist
         </p>
         <Link to="/login" className="btn-primary">
-          Đăng nhập
+          Login
         </Link>
       </div>
     );
@@ -74,11 +74,11 @@ const Wishlist = () => {
         <div className="flex items-center space-x-3">
           <Heart className="w-8 h-8 text-red-500" />
           <h1 className="text-3xl font-bold text-gray-900">
-            Danh sách yêu thích
+            Wishlist
           </h1>
         </div>
         <span className="text-gray-600">
-          {wishlist.length} sản phẩm
+          {wishlist.length} products
         </span>
       </div>
 
@@ -86,13 +86,13 @@ const Wishlist = () => {
         <div className="text-center py-12">
           <Heart className="w-16 h-16 mx-auto text-gray-400 mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Chưa có sản phẩm yêu thích
+            No favorite products yet
           </h2>
           <p className="text-gray-600 mb-6">
-            Thêm sản phẩm vào danh sách yêu thích để xem sau
+            Add products to your wishlist to view them later
           </p>
           <Link to="/products" className="btn-primary">
-            Khám phá sản phẩm
+            Explore Products
           </Link>
         </div>
       ) : (
@@ -110,7 +110,7 @@ const Wishlist = () => {
                 <button
                   onClick={() => removeFromWishlist(item.id)}
                   className="absolute top-2 right-2 p-2 bg-white rounded-full shadow-lg hover:bg-red-50 transition-colors"
-                  title="Xóa khỏi wishlist"
+                  title="Remove from wishlist"
                 >
                   <Trash2 className="w-5 h-5 text-red-500" />
                 </button>
@@ -140,19 +140,19 @@ const Wishlist = () => {
                     className="btn-primary w-full flex items-center justify-center space-x-2"
                   >
                     <ShoppingCart className="w-5 h-5" />
-                    <span>Thêm vào giỏ</span>
+                    <span>Add to Cart</span>
                   </button>
                 ) : (
                   <button
                     disabled
                     className="btn-outline w-full opacity-50 cursor-not-allowed"
                   >
-                    Hết hàng
+                    Out of Stock
                   </button>
                 )}
 
                 <p className="text-xs text-gray-500 mt-2 text-center">
-                  Đã thêm: {new Date(item.created_at).toLocaleDateString('vi-VN')}
+                  Added: {new Date(item.created_at).toLocaleDateString('en-US')}
                 </p>
               </div>
             </div>

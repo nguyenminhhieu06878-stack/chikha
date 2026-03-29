@@ -92,14 +92,14 @@ const ProductManagement = () => {
   }, [fetchCategories]);
 
   const handleDeleteProduct = async (productId) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) {
+    if (window.confirm('Are you sure you want to delete this product?')) {
       try {
         await productsAPI.deleteProduct(productId);
-        toast.success('Xóa sản phẩm thành công');
+        toast.success('Product deleted successfully');
         fetchProducts();
       } catch (err) {
-        setError('Không thể xóa sản phẩm');
-        toast.error('Không thể xóa sản phẩm');
+        setError('Unable to delete product');
+        toast.error('Unable to delete product');
         console.error('Error deleting product:', err);
       }
     }
@@ -122,7 +122,7 @@ const ProductManagement = () => {
       if (editingProduct) {
         // Update existing product
         await productsAPI.updateProduct(editingProduct.id, productData);
-        toast.success('Cập nhật sản phẩm thành công');
+        toast.success('Product updated successfully');
       } else {
         // Create new product
         await productsAPI.createProduct(productData);
@@ -191,21 +191,21 @@ const ProductManagement = () => {
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Quản lý sản phẩm</h1>
-            <p className="text-gray-600 mt-1">Quản lý danh sách sản phẩm trong cửa hàng</p>
+            <h1 className="text-2xl font-bold text-gray-900">Product Management</h1>
+            <p className="text-gray-600 mt-1">Manage products in the store</p>
           </div>
           
           <div className="flex items-center space-x-4">
             <div className="text-right">
               <div className="text-2xl font-bold text-blue-600">{products.length}</div>
-              <div className="text-sm text-gray-500">Sản phẩm</div>
+              <div className="text-sm text-gray-500">Products</div>
             </div>
             <button
               onClick={handleAddProduct}
               className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 flex items-center space-x-2 transition-colors duration-200"
             >
               <Plus className="w-5 h-5" />
-              <span>Thêm sản phẩm</span>
+              <span>Add Product</span>
             </button>
           </div>
         </div>
@@ -221,34 +221,34 @@ const ProductManagement = () => {
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <div className="flex items-center mb-4">
           <Filter className="w-5 h-5 text-gray-400 mr-2" />
-          <h2 className="text-lg font-semibold text-gray-900">Bộ lọc</h2>
+          <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <Search className="w-4 h-4 inline mr-1" />
-              Tìm kiếm
+              Search
             </label>
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Tìm theo tên sản phẩm..."
+              placeholder="Search by product name..."
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Danh mục
+              Category
             </label>
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="all">Tất cả danh mục</option>
+              <option value="all">All Categories</option>
               {Array.isArray(categories) && categories.map((category) => (
                 <option key={category.id} value={category.id}>
                   {category.name}
@@ -259,20 +259,20 @@ const ProductManagement = () => {
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Thống kê nhanh
+              Quick Stats
             </label>
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div className="bg-green-50 px-3 py-2 rounded-lg">
                 <div className="font-semibold text-green-800">
                   {products.filter(p => p.stock_quantity > 0).length}
                 </div>
-                <div className="text-green-600">Còn hàng</div>
+                <div className="text-green-600">In Stock</div>
               </div>
               <div className="bg-red-50 px-3 py-2 rounded-lg">
                 <div className="font-semibold text-red-800">
                   {products.filter(p => p.stock_quantity === 0).length}
                 </div>
-                <div className="text-red-600">Hết hàng</div>
+                <div className="text-red-600">Out of Stock</div>
               </div>
             </div>
           </div>
@@ -286,22 +286,22 @@ const ProductManagement = () => {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Sản phẩm
+                  Product
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Danh mục
+                  Category
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Giá
+                  Price
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Tồn kho
+                  Stock
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Trạng thái
+                  Status
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Thao tác
+                  Actions
                 </th>
               </tr>
             </thead>
@@ -329,7 +329,7 @@ const ProductManagement = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="inline-flex px-3 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
-                      {product.category_name || 'Chưa phân loại'}
+                      {product.category_name || 'Uncategorized'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
@@ -348,7 +348,7 @@ const ProductManagement = () => {
                     <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
                       product.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
                     }`}>
-                      {product.is_active ? 'Hoạt động' : 'Tạm dừng'}
+                      {product.is_active ? 'Active' : 'Inactive'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -356,14 +356,14 @@ const ProductManagement = () => {
                       <button
                         onClick={() => handleEditProduct(product)}
                         className="text-blue-600 hover:text-blue-900 p-2 hover:bg-blue-50 rounded-lg transition-colors duration-200"
-                        title="Chỉnh sửa"
+                        title="Edit"
                       >
                         <Edit className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDeleteProduct(product.id)}
                         className="text-red-600 hover:text-red-900 p-2 hover:bg-red-50 rounded-lg transition-colors duration-200"
-                        title="Xóa"
+                        title="Delete"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -380,11 +380,11 @@ const ProductManagement = () => {
             <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
               <Plus className="w-8 h-8 text-gray-400" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Chưa có sản phẩm nào</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No products yet</h3>
             <p className="text-gray-500 mb-4">
               {searchTerm || categoryFilter !== 'all' 
-                ? 'Không tìm thấy sản phẩm nào phù hợp với bộ lọc'
-                : 'Bắt đầu bằng cách thêm sản phẩm đầu tiên'
+                ? 'No products found matching the filters'
+                : 'Start by adding your first product'
               }
             </p>
             {!searchTerm && categoryFilter === 'all' && (

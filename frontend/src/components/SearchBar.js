@@ -129,7 +129,7 @@ const SearchBar = ({ onSearch }) => {
               {suggestions.products?.length > 0 && (
                 <div className="mb-2">
                   <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
-                    Sản phẩm
+                    Products
                   </div>
                   <ul>
                     {suggestions.products.map((product) => (
@@ -151,7 +151,7 @@ const SearchBar = ({ onSearch }) => {
               {suggestions.categories?.length > 0 && (
                 <div>
                   <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase border-t">
-                    Danh mục
+                    Categories
                   </div>
                   <ul>
                     {suggestions.categories.map((category) => (
@@ -171,7 +171,7 @@ const SearchBar = ({ onSearch }) => {
             </div>
           ) : query.trim().length > 1 ? (
             <div className="p-4 text-center text-gray-500">
-              Không tìm thấy kết quả
+              No results found
             </div>
           ) : null}
         </div>

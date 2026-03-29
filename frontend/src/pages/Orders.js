@@ -36,11 +36,11 @@ const Orders = () => {
 
   const getStatusText = (status) => {
     const texts = {
-      pending: 'Chờ xử lý',
-      processing: 'Đang xử lý',
-      shipped: 'Đã gửi hàng',
-      delivered: 'Đã giao hàng',
-      cancelled: 'Đã hủy'
+      pending: 'Pending',
+      processing: 'Processing', 
+      shipped: 'Shipped',
+      delivered: 'Delivered',
+      cancelled: 'Cancelled'
     };
     return texts[status] || status;
   };
@@ -63,12 +63,12 @@ const Orders = () => {
           }}
           className="input"
         >
-          <option value="">Tất cả đơn hàng</option>
-          <option value="pending">Chờ xử lý</option>
-          <option value="processing">Đang xử lý</option>
-          <option value="shipped">Đã gửi hàng</option>
-          <option value="delivered">Đã giao hàng</option>
-          <option value="cancelled">Đã hủy</option>
+          <option value="">All Orders</option>
+          <option value="pending">Pending</option>
+          <option value="processing">Processing</option>
+          <option value="shipped">Shipped</option>
+          <option value="delivered">Delivered</option>
+          <option value="cancelled">Cancelled</option>
         </select>
       </div>
 
@@ -77,15 +77,15 @@ const Orders = () => {
           <div className="bg-gray-50 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
             <Package className="w-12 h-12 text-gray-400" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Chưa có đơn hàng nào</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">No orders yet</h2>
           <p className="text-gray-600 mb-8">
             {statusFilter 
-              ? `Không tìm thấy đơn hàng ${getStatusText(statusFilter).toLowerCase()}.`
-              : "Bạn chưa đặt đơn hàng nào. Hãy bắt đầu mua sắm ngay!"
+              ? `No ${getStatusText(statusFilter).toLowerCase()} orders found.`
+              : "You haven't placed any orders yet. Start shopping now!"
             }
           </p>
           <a href="/products" className="btn-primary">
-            Bắt đầu mua sắm
+            Start Shopping
           </a>
         </div>
       ) : (
@@ -111,8 +111,8 @@ const Orders = () => {
                           </span>
                           <span className="flex items-center">
                             <CreditCard className="w-4 h-4 mr-1" />
-                            {order.payment_method === 'cod' ? 'Thanh toán khi nhận hàng' : 
-                             order.payment_method === 'bank_transfer' ? 'Chuyển khoản' : 
+                            {order.payment_method === 'cod' ? 'Cash on Delivery' : 
+                             order.payment_method === 'bank_transfer' ? 'Bank Transfer' : 
                              order.payment_method ? order.payment_method.toUpperCase() : 'COD'}
                           </span>
                         </div>
@@ -133,7 +133,7 @@ const Orders = () => {
                 <div className="card-content">
                   {/* Order Items */}
                   <div className="mb-6">
-                    <h4 className="text-sm font-medium text-gray-900 mb-3">Sản phẩm đã đặt</h4>
+                    <h4 className="text-sm font-medium text-gray-900 mb-3">Ordered Items</h4>
                     <div className="space-y-3">
                       {order.order_items?.slice(0, 3).map((item) => (
                         <div key={item.id} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
@@ -147,7 +147,7 @@ const Orders = () => {
                               {item.product_name}
                             </p>
                             <p className="text-sm text-gray-500">
-                              Số lượng: {item.quantity} × {formatPrice(item.price)}
+                              Quantity: {item.quantity} × {formatPrice(item.price)}
                             </p>
                           </div>
                           <p className="text-sm font-medium text-gray-900">
@@ -158,7 +158,7 @@ const Orders = () => {
                       
                       {order.order_items?.length > 3 && (
                         <div className="text-center py-2 text-sm text-gray-500 bg-gray-50 rounded-lg">
-                          +{order.order_items.length - 3} sản phẩm khác
+                          +{order.order_items.length - 3} more items
                         </div>
                       )}
                     </div>
@@ -170,7 +170,7 @@ const Orders = () => {
                       <div className="bg-blue-50 p-4 rounded-lg">
                         <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
                           <MapPin className="w-4 h-4 mr-2 text-blue-600" />
-                          Địa chỉ giao hàng
+                          Shipping Address
                         </h4>
                         <div className="text-sm text-gray-700 space-y-1">
                           {order.shipping_phone && (
@@ -186,7 +186,7 @@ const Orders = () => {
                             <p className="font-medium">{order.shipping_city}</p>
                           )}
                           {!order.shipping_address && !order.shipping_city && (
-                            <p className="text-gray-400 italic">Chưa có địa chỉ</p>
+                            <p className="text-gray-400 italic">No address provided</p>
                           )}
                         </div>
                       </div>

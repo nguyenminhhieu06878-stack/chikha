@@ -48,10 +48,10 @@ const Addresses = () => {
       }
       fetchAddresses();
       resetForm();
-      alert(editingId ? 'Cập nhật địa chỉ thành công!' : 'Thêm địa chỉ thành công!');
+      alert(editingId ? 'Address updated successfully!' : 'Address added successfully!');
     } catch (error) {
       console.error('Error saving address:', error);
-      alert('Không thể lưu địa chỉ');
+      alert('Unable to save address');
     }
   };
 
@@ -72,15 +72,15 @@ const Addresses = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Bạn có chắc muốn xóa địa chỉ này?')) return;
+    if (!window.confirm('Are you sure you want to delete this address?')) return;
     
     try {
       await api.delete(`/addresses/${id}`);
       fetchAddresses();
-      alert('Xóa địa chỉ thành công!');
+      alert('Address deleted successfully!');
     } catch (error) {
       console.error('Error deleting address:', error);
-      alert('Không thể xóa địa chỉ');
+      alert('Unable to delete address');
     }
   };
 
@@ -90,7 +90,7 @@ const Addresses = () => {
       fetchAddresses();
     } catch (error) {
       console.error('Error setting default:', error);
-      alert('Không thể đặt địa chỉ mặc định');
+      alert('Unable to set default address');
     }
   };
 
@@ -120,7 +120,7 @@ const Addresses = () => {
         <div className="flex items-center space-x-3">
           <MapPin className="w-8 h-8 text-primary-600" />
           <h1 className="text-3xl font-bold text-gray-900">
-            Địa chỉ giao hàng
+            Shipping Addresses
           </h1>
         </div>
         {!showForm && (
@@ -129,7 +129,7 @@ const Addresses = () => {
             className="btn-primary flex items-center space-x-2"
           >
             <Plus className="w-5 h-5" />
-            <span>Thêm địa chỉ</span>
+            <span>Add Address</span>
           </button>
         )}
       </div>
@@ -138,7 +138,7 @@ const Addresses = () => {
         <div className="card mb-8">
           <div className="card-header">
             <h2 className="text-xl font-bold">
-              {editingId ? 'Chỉnh sửa địa chỉ' : 'Thêm địa chỉ mới'}
+              {editingId ? 'Edit Address' : 'Add New Address'}
             </h2>
           </div>
           <div className="card-content">
@@ -146,7 +146,7 @@ const Addresses = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Họ và tên *
+                    Full Name *
                   </label>
                   <input
                     type="text"
@@ -154,13 +154,13 @@ const Addresses = () => {
                     value={formData.full_name}
                     onChange={(e) => setFormData({...formData, full_name: e.target.value})}
                     className="input"
-                    placeholder="Nguyễn Văn A"
+                    placeholder="John Doe"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Số điện thoại *
+                    Phone Number *
                   </label>
                   <input
                     type="tel"
@@ -175,7 +175,7 @@ const Addresses = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Địa chỉ *
+                  Address *
                 </label>
                 <input
                   type="text"
@@ -183,27 +183,27 @@ const Addresses = () => {
                   value={formData.address_line_1}
                   onChange={(e) => setFormData({...formData, address_line_1: e.target.value})}
                   className="input"
-                  placeholder="123 Nguyễn Huệ"
+                  placeholder="123 Main Street"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Địa chỉ 2 (tùy chọn)
+                  Address 2 (optional)
                 </label>
                 <input
                   type="text"
                   value={formData.address_line_2}
                   onChange={(e) => setFormData({...formData, address_line_2: e.target.value})}
                   className="input"
-                  placeholder="Phường Bến Nghé"
+                  placeholder="Apartment, suite, etc."
                 />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Thành phố *
+                    City *
                   </label>
                   <input
                     type="text"
@@ -211,13 +211,13 @@ const Addresses = () => {
                     value={formData.city}
                     onChange={(e) => setFormData({...formData, city: e.target.value})}
                     className="input"
-                    placeholder="Hồ Chí Minh"
+                    placeholder="New York"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Tỉnh/Thành *
+                    State *
                   </label>
                   <input
                     type="text"
@@ -225,13 +225,13 @@ const Addresses = () => {
                     value={formData.state}
                     onChange={(e) => setFormData({...formData, state: e.target.value})}
                     className="input"
-                    placeholder="Hồ Chí Minh"
+                    placeholder="New York"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Mã bưu điện *
+                    Postal Code *
                   </label>
                   <input
                     type="text"
@@ -239,7 +239,7 @@ const Addresses = () => {
                     value={formData.postal_code}
                     onChange={(e) => setFormData({...formData, postal_code: e.target.value})}
                     className="input"
-                    placeholder="700000"
+                    placeholder="10001"
                   />
                 </div>
               </div>
@@ -253,20 +253,20 @@ const Addresses = () => {
                   className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
                 />
                 <label htmlFor="is_default" className="ml-2 text-sm text-gray-700">
-                  Đặt làm địa chỉ mặc định
+                  Set as default address
                 </label>
               </div>
 
               <div className="flex space-x-3">
                 <button type="submit" className="btn-primary">
-                  {editingId ? 'Cập nhật' : 'Thêm địa chỉ'}
+                  {editingId ? 'Update' : 'Add Address'}
                 </button>
                 <button
                   type="button"
                   onClick={resetForm}
                   className="btn-outline"
                 >
-                  Hủy
+                  Cancel
                 </button>
               </div>
             </form>
@@ -278,10 +278,10 @@ const Addresses = () => {
         <div className="text-center py-12">
           <MapPin className="w-16 h-16 mx-auto text-gray-400 mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Chưa có địa chỉ giao hàng
+            No shipping addresses yet
           </h2>
           <p className="text-gray-600 mb-6">
-            Thêm địa chỉ để thanh toán nhanh hơn
+            Add an address for faster checkout
           </p>
         </div>
       ) : (
@@ -300,7 +300,7 @@ const Addresses = () => {
                       </h3>
                       {address.is_default === 1 && (
                         <span className="px-2 py-1 bg-primary-100 text-primary-800 text-xs font-medium rounded">
-                          Mặc định
+                          Default
                         </span>
                       )}
                     </div>
@@ -319,14 +319,14 @@ const Addresses = () => {
                     <button
                       onClick={() => handleEdit(address)}
                       className="p-2 text-blue-600 hover:bg-blue-50 rounded"
-                      title="Chỉnh sửa"
+                      title="Edit"
                     >
                       <Edit2 className="w-5 h-5" />
                     </button>
                     <button
                       onClick={() => handleDelete(address.id)}
                       className="p-2 text-red-600 hover:bg-red-50 rounded"
-                      title="Xóa"
+                      title="Delete"
                     >
                       <Trash2 className="w-5 h-5" />
                     </button>
@@ -334,7 +334,7 @@ const Addresses = () => {
                       <button
                         onClick={() => handleSetDefault(address.id)}
                         className="p-2 text-green-600 hover:bg-green-50 rounded"
-                        title="Đặt làm mặc định"
+                        title="Set as default"
                       >
                         <Check className="w-5 h-5" />
                       </button>

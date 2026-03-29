@@ -45,9 +45,9 @@ const ReviewManagement = () => {
       setTotalPages(response.data.pagination?.total_pages || 1);
       setError(null);
     } catch (err) {
-      setError('Không thể tải danh sách đánh giá');
+      setError('Unable to load review list');
       console.error('Error fetching reviews:', err);
-      toast.error('Không thể tải danh sách đánh giá');
+      toast.error('Unable to load review list');
     } finally {
       setLoading(false);
     }
@@ -63,10 +63,10 @@ const ReviewManagement = () => {
       setReviews(prev => prev.map(review => 
         review.id === reviewId ? { ...review, status: 'approved' } : review
       ));
-      toast.success('Đánh giá đã được phê duyệt');
+      toast.success('Review has been approved');
     } catch (err) {
-      setError('Không thể phê duyệt đánh giá');
-      toast.error('Không thể phê duyệt đánh giá');
+      setError('Unable to approve review');
+      toast.error('Unable to approve review');
       console.error('Error approving review:', err);
     }
   };
@@ -77,26 +77,26 @@ const ReviewManagement = () => {
       setReviews(prev => prev.map(review => 
         review.id === reviewId ? { ...review, status: 'rejected' } : review
       ));
-      toast.success('Đánh giá đã được từ chối');
+      toast.success('Review has been rejected');
     } catch (err) {
-      setError('Không thể từ chối đánh giá');
-      toast.error('Không thể từ chối đánh giá');
+      setError('Unable to reject review');
+      toast.error('Unable to reject review');
       console.error('Error rejecting review:', err);
     }
   };
 
   const handleDeleteReview = async (reviewId) => {
-    if (!window.confirm('Bạn có chắc chắn muốn xóa đánh giá này?')) {
+    if (!window.confirm('Are you sure you want to delete this review?')) {
       return;
     }
 
     try {
       await adminAPI.deleteReview(reviewId);
       setReviews(prev => prev.filter(review => review.id !== reviewId));
-      toast.success('Đánh giá đã được xóa');
+      toast.success('Review has been deleted');
     } catch (err) {
-      setError('Không thể xóa đánh giá');
-      toast.error('Không thể xóa đánh giá');
+      setError('Unable to delete review');
+      toast.error('Unable to delete review');
       console.error('Error deleting review:', err);
     }
   };
@@ -118,10 +118,10 @@ const ReviewManagement = () => {
 
   const getStatusText = (status) => {
     const statusMap = {
-      approved: 'Đã duyệt',
-      pending: 'Chờ duyệt',
-      rejected: 'Đã từ chối',
-      flagged: 'Bị báo cáo'
+      approved: 'Approved',
+      pending: 'Pending',
+      rejected: 'Rejected',
+      flagged: 'Flagged'
     };
     return statusMap[status] || status;
   };
@@ -199,14 +199,14 @@ const ReviewManagement = () => {
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Quản lý đánh giá</h1>
-            <p className="text-gray-600 mt-1">Quản lý và kiểm duyệt đánh giá sản phẩm từ khách hàng</p>
+            <h1 className="text-2xl font-bold text-gray-900">Review Management</h1>
+            <p className="text-gray-600 mt-1">Manage and moderate product reviews from customers</p>
           </div>
           
           <div className="flex items-center space-x-4">
             <div className="text-right">
               <div className="text-2xl font-bold text-blue-600">{reviews.length}</div>
-              <div className="text-sm text-gray-500">Đánh giá</div>
+              <div className="text-sm text-gray-500">Reviews</div>
             </div>
           </div>
         </div>
@@ -222,61 +222,61 @@ const ReviewManagement = () => {
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <div className="flex items-center mb-4">
           <Filter className="w-5 h-5 text-gray-400 mr-2" />
-          <h2 className="text-lg font-semibold text-gray-900">Bộ lọc</h2>
+          <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Trạng thái
+              Status
             </label>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="all">Tất cả trạng thái</option>
-              <option value="pending">Chờ duyệt</option>
-              <option value="approved">Đã duyệt</option>
-              <option value="rejected">Đã từ chối</option>
-              <option value="flagged">Bị báo cáo</option>
+              <option value="all">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+              <option value="flagged">Flagged</option>
             </select>
           </div>
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Đánh giá
+              Rating
             </label>
             <select
               value={ratingFilter}
               onChange={(e) => setRatingFilter(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="all">Tất cả đánh giá</option>
-              <option value="5">5 sao</option>
-              <option value="4">4 sao</option>
-              <option value="3">3 sao</option>
-              <option value="2">2 sao</option>
-              <option value="1">1 sao</option>
+              <option value="all">All Ratings</option>
+              <option value="5">5 stars</option>
+              <option value="4">4 stars</option>
+              <option value="3">3 stars</option>
+              <option value="2">2 stars</option>
+              <option value="1">1 star</option>
             </select>
           </div>
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Thống kê nhanh
+              Quick Stats
             </label>
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div className="bg-yellow-50 px-3 py-2 rounded-lg">
                 <div className="font-semibold text-yellow-800">
                   {reviews.filter(r => r.status === 'pending').length}
                 </div>
-                <div className="text-yellow-600">Chờ duyệt</div>
+                <div className="text-yellow-600">Pending</div>
               </div>
               <div className="bg-red-50 px-3 py-2 rounded-lg">
                 <div className="font-semibold text-red-800">
                   {reviews.filter(r => r.status === 'flagged').length}
                 </div>
-                <div className="text-red-600">Báo cáo</div>
+                <div className="text-red-600">Flagged</div>
               </div>
             </div>
           </div>
@@ -344,14 +344,14 @@ const ReviewManagement = () => {
                             className="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
                           >
                             <Check className="w-4 h-4 mr-2" />
-                            Phê duyệt
+                            Approve
                           </button>
                           <button
                             onClick={() => handleRejectReview(review.id)}
                             className="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
                           >
                             <X className="w-4 h-4 mr-2" />
-                            Từ chối
+                            Reject
                           </button>
                         </>
                       )}
@@ -363,14 +363,14 @@ const ReviewManagement = () => {
                             className="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
                           >
                             <Check className="w-4 h-4 mr-2" />
-                            Giữ lại
+                            Keep
                           </button>
                           <button
                             onClick={() => handleDeleteReview(review.id)}
                             className="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
                           >
                             <Trash2 className="w-4 h-4 mr-2" />
-                            Xóa bỏ
+                            Remove
                           </button>
                         </>
                       )}
@@ -381,7 +381,7 @@ const ReviewManagement = () => {
                           className="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors duration-200"
                         >
                           <Trash2 className="w-4 h-4 mr-2" />
-                          Xóa
+                          Delete
                         </button>
                       )}
                     </div>
@@ -402,11 +402,11 @@ const ReviewManagement = () => {
             <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
               <Star className="w-8 h-8 text-gray-400" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Không có đánh giá nào</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No reviews found</h3>
             <p className="text-gray-500">
               {statusFilter === 'all' 
-                ? 'Chưa có đánh giá nào trong hệ thống'
-                : `Không tìm thấy đánh giá nào với trạng thái "${getStatusText(statusFilter)}"`
+                ? 'No reviews in the system yet'
+                : `No reviews found with status "${getStatusText(statusFilter)}"`
               }
             </p>
           </div>
@@ -418,8 +418,8 @@ const ReviewManagement = () => {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <div className="flex items-center justify-between">
             <div className="text-sm text-gray-700">
-              Hiển thị trang <span className="font-medium">{currentPage}</span> trong tổng số{' '}
-              <span className="font-medium">{totalPages}</span> trang
+              Showing page <span className="font-medium">{currentPage}</span> of{' '}
+              <span className="font-medium">{totalPages}</span> pages
             </div>
             
             <div className="flex items-center space-x-2">
@@ -428,7 +428,7 @@ const ReviewManagement = () => {
                 disabled={currentPage === 1}
                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
               >
-                Trước
+                Previous
               </button>
               
               <div className="flex items-center space-x-1">
@@ -455,7 +455,7 @@ const ReviewManagement = () => {
                 disabled={currentPage === totalPages}
                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
               >
-                Sau
+                Next
               </button>
             </div>
           </div>

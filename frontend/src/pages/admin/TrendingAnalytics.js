@@ -25,9 +25,9 @@ const TrendingAnalytics = () => {
   const topProducts = topProductsData?.data?.data?.topProducts || [];
 
   const formatPrice = (price) => {
-    return new Intl.NumberFormat('vi-VN', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'VND',
+      currency: 'USD',
     }).format(price);
   };
 
@@ -41,7 +41,7 @@ const TrendingAnalytics = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Trending Analytics</h1>
-          <p className="text-gray-600 mt-1">Phân tích sản phẩm trending và bán chạy</p>
+          <p className="text-gray-600 mt-1">Trending and best-selling product analysis</p>
         </div>
         
         <div className="flex items-center space-x-4">
@@ -50,9 +50,9 @@ const TrendingAnalytics = () => {
             onChange={(e) => setTimeRange(e.target.value)}
             className="input"
           >
-            <option value="24h">24 giờ qua</option>
-            <option value="7d">7 ngày qua</option>
-            <option value="30d">30 ngày qua</option>
+            <option value="24h">Last 24 hours</option>
+            <option value="7d">Last 7 days</option>
+            <option value="30d">Last 30 days</option>
           </select>
         </div>
       </div>
@@ -79,7 +79,7 @@ const TrendingAnalytics = () => {
               <ShoppingCart className="w-6 h-6 text-green-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm text-gray-600">Đơn hàng cao nhất</p>
+              <p className="text-sm text-gray-600">Highest Orders</p>
               <p className="text-2xl font-bold text-gray-900">
                 {trendingProducts[0]?.order_count || 0}
               </p>
@@ -93,7 +93,7 @@ const TrendingAnalytics = () => {
               <Eye className="w-6 h-6 text-purple-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm text-gray-600">Lượt xem cao nhất</p>
+              <p className="text-sm text-gray-600">Highest Views</p>
               <p className="text-2xl font-bold text-gray-900">
                 {trendingProducts[0]?.view_count || 0}
               </p>
@@ -107,7 +107,7 @@ const TrendingAnalytics = () => {
               <Star className="w-6 h-6 text-yellow-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm text-gray-600">Điểm trending cao nhất</p>
+              <p className="text-sm text-gray-600">Highest Trending Score</p>
               <p className="text-2xl font-bold text-gray-900">
                 {trendingProducts[0]?.trending_score?.toFixed(1) || 0}
               </p>
@@ -161,11 +161,11 @@ const TrendingAnalytics = () => {
                       <div className="flex items-center space-x-4 text-sm">
                         <div className="text-center">
                           <p className="font-bold text-blue-600">{product.order_count}</p>
-                          <p className="text-gray-500">Đơn</p>
+                          <p className="text-gray-500">Orders</p>
                         </div>
                         <div className="text-center">
                           <p className="font-bold text-purple-600">{product.view_count}</p>
-                          <p className="text-gray-500">Xem</p>
+                          <p className="text-gray-500">Views</p>
                         </div>
                         <div className="text-center">
                           <p className="font-bold text-green-600">{product.trending_score?.toFixed(1)}</p>
@@ -185,7 +185,7 @@ const TrendingAnalytics = () => {
           <div className="card-header">
             <h2 className="text-xl font-semibold text-gray-900 flex items-center">
               <BarChart3 className="w-5 h-5 mr-2 text-green-600" />
-              Bán Chạy Nhất (Tổng)
+              Best Sellers (All Time)
             </h2>
           </div>
           <div className="card-content">
@@ -208,12 +208,12 @@ const TrendingAnalytics = () => {
                     
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-gray-900 truncate">{product.name}</p>
-                      <p className="text-sm text-gray-500">Doanh thu: {formatPrice(product.revenue)}</p>
+                      <p className="text-sm text-gray-500">Revenue: {formatPrice(product.revenue)}</p>
                     </div>
                     
                     <div className="text-right">
                       <p className="font-bold text-lg text-green-600">{product.total_sold}</p>
-                      <p className="text-sm text-gray-500">Đã bán</p>
+                      <p className="text-sm text-gray-500">Sold</p>
                     </div>
                   </div>
                 ))}
@@ -226,34 +226,34 @@ const TrendingAnalytics = () => {
       {/* Trending Algorithm Info */}
       <div className="card">
         <div className="card-header">
-          <h2 className="text-xl font-semibold text-gray-900">Thuật Toán Trending</h2>
+          <h2 className="text-xl font-semibold text-gray-900">Trending Algorithm</h2>
         </div>
         <div className="card-content">
           <div className="bg-blue-50 p-4 rounded-lg">
-            <h3 className="font-semibold text-blue-900 mb-2">Công thức tính điểm Trending:</h3>
+            <h3 className="font-semibold text-blue-900 mb-2">Trending Score Formula:</h3>
             <p className="text-blue-800 font-mono">
-              Score = (Đơn hàng × 10) + (Lượt xem × 0.1) + (Rating × 2) + (Reviews × 1)
+              Score = (Orders × 10) + (Views × 0.1) + (Rating × 2) + (Reviews × 1)
             </p>
             <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div>
-                <span className="font-semibold text-blue-900">Đơn hàng:</span>
-                <span className="text-blue-700"> Trọng số 10 (quan trọng nhất)</span>
+                <span className="font-semibold text-blue-900">Orders:</span>
+                <span className="text-blue-700"> Weight 10 (most important)</span>
               </div>
               <div>
-                <span className="font-semibold text-blue-900">Lượt xem:</span>
-                <span className="text-blue-700"> Trọng số 0.1</span>
+                <span className="font-semibold text-blue-900">Views:</span>
+                <span className="text-blue-700"> Weight 0.1</span>
               </div>
               <div>
                 <span className="font-semibold text-blue-900">Rating:</span>
-                <span className="text-blue-700"> Trọng số 2</span>
+                <span className="text-blue-700"> Weight 2</span>
               </div>
               <div>
                 <span className="font-semibold text-blue-900">Reviews:</span>
-                <span className="text-blue-700"> Trọng số 1</span>
+                <span className="text-blue-700"> Weight 1</span>
               </div>
             </div>
             <p className="text-blue-700 text-sm mt-2">
-              * Chỉ tính dữ liệu trong 24 giờ gần nhất để đảm bảo trending real-time
+              * Only counts data from the last 24 hours to ensure real-time trending
             </p>
           </div>
         </div>

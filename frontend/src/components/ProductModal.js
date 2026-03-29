@@ -54,7 +54,7 @@ const ProductModal = ({ isOpen, onClose, onSave, product = null, isLoading = fal
         setCategories(categoriesData);
       } catch (err) {
         console.error('Error fetching categories:', err);
-        toast.error('Không thể tải danh mục');
+        toast.error('Unable to load categories');
       }
     };
 
@@ -80,23 +80,23 @@ const ProductModal = ({ isOpen, onClose, onSave, product = null, isLoading = fal
     const newErrors = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = 'Tên sản phẩm là bắt buộc';
+      newErrors.name = 'Product name is required';
     }
 
     if (!formData.price || parseFloat(formData.price) <= 0) {
-      newErrors.price = 'Giá phải lớn hơn 0';
+      newErrors.price = 'Price must be greater than 0';
     }
 
     if (!formData.category_id) {
-      newErrors.category_id = 'Vui lòng chọn danh mục';
+      newErrors.category_id = 'Please select a category';
     }
 
     if (!formData.stock_quantity || parseInt(formData.stock_quantity) < 0) {
-      newErrors.stock_quantity = 'Số lượng tồn kho không được âm';
+      newErrors.stock_quantity = 'Stock quantity cannot be negative';
     }
 
     if (formData.image_url && !isValidUrl(formData.image_url)) {
-      newErrors.image_url = 'URL hình ảnh không hợp lệ';
+      newErrors.image_url = 'Invalid image URL';
     }
 
     setErrors(newErrors);
@@ -139,7 +139,7 @@ const ProductModal = ({ isOpen, onClose, onSave, product = null, isLoading = fal
         <div className="inline-block w-full max-w-2xl p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-2xl font-bold text-gray-900">
-              {product ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm mới'}
+              {product ? 'Edit Product' : 'Add New Product'}
             </h3>
             <button
               onClick={onClose}
@@ -153,7 +153,7 @@ const ProductModal = ({ isOpen, onClose, onSave, product = null, isLoading = fal
             {/* Product Name */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Tên sản phẩm *
+                Product Name *
               </label>
               <input
                 type="text"
@@ -163,7 +163,7 @@ const ProductModal = ({ isOpen, onClose, onSave, product = null, isLoading = fal
                 className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                   errors.name ? 'border-red-500' : 'border-gray-300'
                 }`}
-                placeholder="Nhập tên sản phẩm"
+                placeholder="Enter product name"
               />
               {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
             </div>
@@ -171,7 +171,7 @@ const ProductModal = ({ isOpen, onClose, onSave, product = null, isLoading = fal
             {/* Description */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Mô tả
+                Description
               </label>
               <textarea
                 name="description"
@@ -179,7 +179,7 @@ const ProductModal = ({ isOpen, onClose, onSave, product = null, isLoading = fal
                 onChange={handleChange}
                 rows={4}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Nhập mô tả sản phẩm"
+                placeholder="Enter product description"
               />
             </div>
 
@@ -187,7 +187,7 @@ const ProductModal = ({ isOpen, onClose, onSave, product = null, isLoading = fal
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Giá (VNĐ) *
+                  Price (USD) *
                 </label>
                 <input
                   type="number"
@@ -195,18 +195,18 @@ const ProductModal = ({ isOpen, onClose, onSave, product = null, isLoading = fal
                   value={formData.price}
                   onChange={handleChange}
                   min="0"
-                  step="1000"
+                  step="0.01"
                   className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                     errors.price ? 'border-red-500' : 'border-gray-300'
                   }`}
-                  placeholder="0"
+                  placeholder="0.00"
                 />
                 {errors.price && <p className="mt-1 text-sm text-red-600">{errors.price}</p>}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Danh mục *
+                  Category *
                 </label>
                 <select
                   name="category_id"
@@ -216,7 +216,7 @@ const ProductModal = ({ isOpen, onClose, onSave, product = null, isLoading = fal
                     errors.category_id ? 'border-red-500' : 'border-gray-300'
                   }`}
                 >
-                  <option value="">Chọn danh mục</option>
+                  <option value="">Select Category</option>
                   {categories.map((category) => (
                     <option key={category.id} value={category.id}>
                       {category.name}
@@ -230,7 +230,7 @@ const ProductModal = ({ isOpen, onClose, onSave, product = null, isLoading = fal
             {/* Stock Quantity */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Số lượng tồn kho *
+                Stock Quantity *
               </label>
               <input
                 type="number"
@@ -249,7 +249,7 @@ const ProductModal = ({ isOpen, onClose, onSave, product = null, isLoading = fal
             {/* Image URL */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                URL hình ảnh
+                Image URL
               </label>
               <div className="flex space-x-4">
                 <div className="flex-1">
@@ -290,7 +290,7 @@ const ProductModal = ({ isOpen, onClose, onSave, product = null, isLoading = fal
                 className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
               />
               <label className="ml-2 text-sm text-gray-700">
-                Sản phẩm nổi bật
+                Featured Product
               </label>
             </div>
 
@@ -302,14 +302,14 @@ const ProductModal = ({ isOpen, onClose, onSave, product = null, isLoading = fal
                 className="px-6 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                 disabled={isLoading}
               >
-                Hủy
+                Cancel
               </button>
               <button
                 type="submit"
                 disabled={isLoading}
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                {isLoading ? 'Đang lưu...' : (product ? 'Cập nhật' : 'Thêm mới')}
+                {isLoading ? 'Saving...' : (product ? 'Update' : 'Add New')}
               </button>
             </div>
           </form>
