@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { CreditCard, Truck, Shield, MapPin } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
-import { ordersAPI, formatPrice, getProductImageUrl, addressesAPI } from '../services/api';
+import { ordersAPI, formatPrice, getProductImageUrl, addressesAPI, paymentAPI } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import toast from 'react-hot-toast';
 
@@ -11,6 +11,7 @@ const Checkout = () => {
   const [loading, setLoading] = useState(false);
   const [loadingAddress, setLoadingAddress] = useState(true);
   const [savedAddresses, setSavedAddresses] = useState([]);
+  const [paymentMethod, setPaymentMethod] = useState('cod');
   const { cartItems, cartSummary, clearCart } = useCart();
   const navigate = useNavigate();
   
@@ -90,9 +91,36 @@ const Checkout = () => {
       const response = await ordersAPI.createOrder(orderData);
       
       if (response.data.success) {
+        const orderId = response.data.data.id;
+        
+        // If payment method is OSPay, redirect to payment gateway
+        if (paymentMethod === 'ospay') {
+          try {
+            const paymentResponse = await paymentAPI.createOSPayPayment({
+              orderId,
+              amount: cartSummary.total,
+              orderInfo: `Payment for order #${orderId}`,
+              customerName: data.full_name,
+              customerPhone: data.phone
+            });
+
+            if (paymentResponse.data.success) {
+              // Redirect to OSPay payment page
+              window.location.href = paymentResponse.data.data.paymentUrl;
+              return;
+            }
+          } catch (paymentError) {
+            console.error('Payment creation failed:', paymentError);
+            toast.error('Failed to create payment. Please try again.');
+            setLoading(false);
+            return;
+          }
+        }
+        
+        // For COD and Bank Transfer, clear cart and redirect to order detail
         await clearCart();
         toast.success('Order placed successfully!');
-        navigate(`/orders/${response.data.data.id}`);
+        navigate(`/orders/${orderId}`);
       }
     } catch (error) {
       const message = error.response?.data?.error || 'Failed to place order';
@@ -287,10 +315,10 @@ const Checkout = () => {
               <div className="space-y-3">
                 <label className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
                   <input
-                    {...register('payment_method')}
                     type="radio"
                     value="cod"
-                    defaultChecked
+                    checked={paymentMethod === 'cod'}
+                    onChange={(e) => setPaymentMethod(e.target.value)}
                     className="mr-3"
                   />
                   <div>
@@ -301,27 +329,32 @@ const Checkout = () => {
 
                 <label className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
                   <input
-                    {...register('payment_method')}
+                    type="radio"
+                    value="ospay"
+                    checked={paymentMethod === 'ospay'}
+                    onChange={(e) => setPaymentMethod(e.target.value)}
+                    className="mr-3"
+                  />
+                  <div className="flex-1">
+                    <div className="font-medium flex items-center">
+                      <CreditCard className="w-4 h-4 mr-2" />
+                      OSPay (OneSPay)
+                    </div>
+                    <div className="text-sm text-gray-500">Pay online with credit/debit card or e-wallet</div>
+                  </div>
+                </label>
+
+                <label className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                  <input
                     type="radio"
                     value="bank_transfer"
+                    checked={paymentMethod === 'bank_transfer'}
+                    onChange={(e) => setPaymentMethod(e.target.value)}
                     className="mr-3"
                   />
                   <div>
                     <div className="font-medium">Bank Transfer</div>
                     <div className="text-sm text-gray-500">Transfer to our bank account</div>
-                  </div>
-                </label>
-
-                <label className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 opacity-50">
-                  <input
-                    type="radio"
-                    value="credit_card"
-                    disabled
-                    className="mr-3"
-                  />
-                  <div>
-                    <div className="font-medium">Credit Card</div>
-                    <div className="text-sm text-gray-500">Coming soon</div>
                   </div>
                 </label>
               </div>
@@ -407,6 +440,8 @@ const Checkout = () => {
               >
                 {loading ? (
                   <div className="loading-spinner mx-auto"></div>
+                ) : paymentMethod === 'ospay' ? (
+                  'Proceed to Payment'
                 ) : (
                   'Place Order'
                 )}

@@ -205,4 +205,10 @@ export const adminAPI = {
   deleteCategory: (categoryId) => api.delete(`/admin/categories/${categoryId}`),
 };
 
+// Payment API
+export const paymentAPI = {
+  createOSPayPayment: (data) => api.post('/payment/ospay/create', data),
+  getTransaction: (orderId) => api.get(`/payment/transaction/${orderId}`)
+};
+
 export default api;

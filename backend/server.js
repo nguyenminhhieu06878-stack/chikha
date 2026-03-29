@@ -37,6 +37,7 @@ const recommendationsAdvancedRoutes = require('./routes/recommendations-advanced
 // Import new routes
 const elasticsearchRoutes = require('./routes/elasticsearch');
 const couponsRoutes = require('./routes/coupons');
+const paymentRoutes = require('./routes/payment');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -123,6 +124,7 @@ app.use('/api/recommendations-advanced', recommendationsAdvancedRoutes);
 // New API Routes
 app.use('/api/elasticsearch', elasticsearchRoutes);
 app.use('/api/coupons', couponsRoutes);
+app.use('/api/payment', paymentRoutes);
 
 // Error handling middleware
 app.use(notFound);
