@@ -13,6 +13,9 @@ const Checkout = () => {
   const [loadingAddress, setLoadingAddress] = useState(true);
   const [savedAddresses, setSavedAddresses] = useState([]);
   const [paymentMethod, setPaymentMethod] = useState('cod');
+  const [pendingOrderId, setPendingOrderId] = useState(null);
+  const [paymentStatus, setPaymentStatus] = useState(null);
+  const [checkingPayment, setCheckingPayment] = useState(false);
   const { cartItems, cartSummary, clearCart } = useCart();
   const navigate = useNavigate();
   
@@ -70,6 +73,46 @@ const Checkout = () => {
     }
   }, [cartItems, navigate]);
 
+  // Poll payment status when order is pending
+  useEffect(() => {
+    if (!pendingOrderId || paymentMethod !== 'ospay') return;
+
+    const checkPayment = async () => {
+      try {
+        setCheckingPayment(true);
+        const response = await paymentAPI.getTransaction(pendingOrderId);
+        
+        if (response.data.success) {
+          const { order, transaction } = response.data.data;
+          
+          if (order.payment_status === 'paid' && transaction?.status === 'success') {
+            setPaymentStatus('success');
+            await clearCart();
+            toast.success('Payment successful!');
+            setTimeout(() => {
+              navigate(`/orders/${pendingOrderId}`);
+            }, 1500);
+          } else if (order.payment_status === 'failed') {
+            setPaymentStatus('failed');
+            toast.error('Payment failed. Please try again.');
+          }
+        }
+      } catch (error) {
+        console.error('Error checking payment:', error);
+      } finally {
+        setCheckingPayment(false);
+      }
+    };
+
+    // Check immediately
+    checkPayment();
+
+    // Then poll every 3 seconds
+    const interval = setInterval(checkPayment, 3000);
+
+    return () => clearInterval(interval);
+  }, [pendingOrderId, paymentMethod, navigate, clearCart]);
+
   const onSubmit = async (data) => {
     setLoading(true);
     
@@ -86,7 +129,8 @@ const Checkout = () => {
         }),
         shipping_address: `${data.address_line_1}, ${data.address_line_2 || ''}, ${data.city}, ${data.state}`,
         shipping_city: data.city,
-        shipping_phone: data.phone
+        shipping_phone: data.phone,
+        payment_method: paymentMethod
       };
 
       const response = await ordersAPI.createOrder(orderData);
@@ -94,28 +138,12 @@ const Checkout = () => {
       if (response.data.success) {
         const orderId = response.data.data.id;
         
-        // If payment method is OSPay, redirect to payment gateway
+        // If payment method is OSPay, show QR and wait for payment
         if (paymentMethod === 'ospay') {
-          try {
-            const paymentResponse = await paymentAPI.createOSPayPayment({
-              orderId,
-              amount: cartSummary.total,
-              orderInfo: `Payment for order #${orderId}`,
-              customerName: data.full_name,
-              customerPhone: data.phone
-            });
-
-            if (paymentResponse.data.success) {
-              // Redirect to OSPay payment page
-              window.location.href = paymentResponse.data.data.paymentUrl;
-              return;
-            }
-          } catch (paymentError) {
-            console.error('Payment creation failed:', paymentError);
-            toast.error('Failed to create payment. Please try again.');
-            setLoading(false);
-            return;
-          }
+          setPendingOrderId(orderId);
+          toast.success('Order created! Please scan QR code to complete payment.');
+          setLoading(false);
+          return;
         }
         
         // For COD and Bank Transfer, clear cart and redirect to order detail
@@ -434,7 +462,88 @@ const Checkout = () => {
               </div>
 
               {/* OSPay QR Code */}
-              {paymentMethod === 'ospay' && (
+              {paymentMethod === 'ospay' && pendingOrderId && (
+                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="text-center">
+                    {paymentStatus === 'success' ? (
+                      <div className="text-green-600">
+                        <div className="text-2xl mb-2">✓</div>
+                        <p className="font-medium">Payment Successful!</p>
+                        <p className="text-sm">Redirecting...</p>
+                      </div>
+                    ) : paymentStatus === 'failed' ? (
+                      <div className="text-red-600">
+                        <div className="text-2xl mb-2">✗</div>
+                        <p className="font-medium">Payment Failed</p>
+                        <p className="text-sm">Please try again</p>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="text-sm font-medium text-gray-700 mb-3">
+                          {checkingPayment ? 'Checking payment status...' : 'Scan QR Code to Pay'}
+                        </p>
+                        <div className="flex justify-center mb-3">
+                          <div className="bg-white p-3 rounded-lg">
+                            <QRCodeSVG 
+                              value={`OSPAY:ORDER:${pendingOrderId}:${cartSummary.total}:VND`}
+                              size={160}
+                              level="H"
+                              includeMargin={true}
+                            />
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-500">
+                          Order: #{pendingOrderId}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          Amount: {formatPrice(cartSummary.total)}
+                        </p>
+                        <p className="text-xs text-blue-600 mt-2 animate-pulse">
+                          Waiting for payment...
+                        </p>
+                        
+                        {/* Test buttons - Remove in production */}
+                        <div className="mt-4 pt-4 border-t border-blue-300">
+                          <p className="text-xs text-gray-500 mb-2">Test Payment (Development Only)</p>
+                          <div className="flex gap-2 justify-center">
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                try {
+                                  await paymentAPI.simulatePayment(pendingOrderId, true);
+                                  toast.success('Payment simulated!');
+                                } catch (error) {
+                                  toast.error('Simulation failed');
+                                }
+                              }}
+                              className="px-3 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600"
+                            >
+                              Simulate Success
+                            </button>
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                try {
+                                  await paymentAPI.simulatePayment(pendingOrderId, false);
+                                  toast.error('Payment failed!');
+                                } catch (error) {
+                                  toast.error('Simulation failed');
+                                }
+                              }}
+                              className="px-3 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600"
+                            >
+                              Simulate Failure
+                            </button>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* OSPay QR Code Preview (before order created) */}
+              {paymentMethod === 'ospay' && !pendingOrderId && (
                 <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                   <div className="text-center">
                     <p className="text-sm font-medium text-gray-700 mb-3">
@@ -454,7 +563,7 @@ const Checkout = () => {
                       Amount: {formatPrice(cartSummary.total)}
                     </p>
                     <p className="text-xs text-gray-400 mt-1">
-                      Or click "Proceed to Payment" below
+                      Click "Place Order" to generate payment QR
                     </p>
                   </div>
                 </div>
@@ -463,13 +572,15 @@ const Checkout = () => {
               {/* Place Order Button */}
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || (paymentMethod === 'ospay' && pendingOrderId)}
                 className="btn-primary w-full mt-6 py-3 disabled:opacity-50"
               >
                 {loading ? (
                   <div className="loading-spinner mx-auto"></div>
+                ) : pendingOrderId && paymentMethod === 'ospay' ? (
+                  checkingPayment ? 'Checking Payment...' : 'Waiting for Payment...'
                 ) : paymentMethod === 'ospay' ? (
-                  'Proceed to Payment'
+                  'Place Order & Show QR'
                 ) : (
                   'Place Order'
                 )}

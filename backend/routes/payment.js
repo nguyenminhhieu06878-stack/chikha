@@ -203,4 +203,77 @@ router.get('/transaction/:orderId', authenticateToken, async (req, res) => {
   }
 });
 
+/**
+ * @route   POST /api/payment/ospay/simulate
+ * @desc    Simulate OSPay payment (for testing without real OSPay)
+ * @access  Public (in production, this should be removed)
+ */
+router.post('/ospay/simulate', async (req, res) => {
+  try {
+    const { orderId, success = true } = req.body;
+
+    if (!orderId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Order ID is required'
+      });
+    }
+
+    // Get order from database
+    const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(orderId);
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        error: 'Order not found'
+      });
+    }
+
+    if (success) {
+      // Simulate successful payment
+      db.prepare(`
+        UPDATE orders 
+        SET payment_status = 'paid',
+            payment_method = 'ospay',
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+      `).run(orderId);
+
+      // Log transaction
+      const txnRef = `${orderId}_${Date.now()}`;
+      db.prepare(`
+        INSERT INTO payment_transactions (order_id, transaction_ref, amount, status, response_code, response_message, transaction_no)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `).run(orderId, txnRef, order.total_amount, 'success', '0', 'Transaction successful (simulated)', `SIM${Date.now()}`);
+
+      res.json({
+        success: true,
+        message: 'Payment simulated successfully',
+        data: { orderId, status: 'paid' }
+      });
+    } else {
+      // Simulate failed payment
+      db.prepare(`
+        UPDATE orders 
+        SET payment_status = 'failed',
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+      `).run(orderId);
+
+      res.json({
+        success: true,
+        message: 'Payment failure simulated',
+        data: { orderId, status: 'failed' }
+      });
+    }
+
+  } catch (error) {
+    console.error('Simulate payment error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to simulate payment'
+    });
+  }
+});
+
 module.exports = router;
