@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { CreditCard, Truck, Shield, MapPin } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { useCart } from '../contexts/CartContext';
 import { ordersAPI, formatPrice, getProductImageUrl, addressesAPI, paymentAPI } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -431,6 +432,33 @@ const Checkout = () => {
                   <span>{formatPrice(cartSummary.total)}</span>
                 </div>
               </div>
+
+              {/* OSPay QR Code */}
+              {paymentMethod === 'ospay' && (
+                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="text-center">
+                    <p className="text-sm font-medium text-gray-700 mb-3">
+                      Scan QR Code to Pay
+                    </p>
+                    <div className="flex justify-center mb-3">
+                      <div className="bg-white p-3 rounded-lg">
+                        <QRCodeSVG 
+                          value={`OSPAY:${cartSummary.total}:VND`}
+                          size={160}
+                          level="H"
+                          includeMargin={true}
+                        />
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      Amount: {formatPrice(cartSummary.total)}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Or click "Proceed to Payment" below
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* Place Order Button */}
               <button
