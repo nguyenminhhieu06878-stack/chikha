@@ -14,7 +14,8 @@ const createOrderSchema = Joi.object({
   })).min(1).required(),
   shipping_address: Joi.string().required(),
   shipping_city: Joi.string().required(),
-  shipping_phone: Joi.string().required()
+  shipping_phone: Joi.string().required(),
+  payment_method: Joi.string().valid('cod', 'ospay', 'bank_transfer').optional().default('cod')
 });
 
 // @route   GET /api/orders
@@ -119,7 +120,7 @@ router.post('/', authenticateToken, async (req, res) => {
       });
     }
 
-    const { items, shipping_address, shipping_city, shipping_phone } = value;
+    const { items, shipping_address, shipping_city, shipping_phone, payment_method } = value;
     const userId = req.user.id;
 
     // Calculate total
@@ -128,12 +129,15 @@ router.post('/', authenticateToken, async (req, res) => {
       totalAmount += item.price * item.quantity;
     });
 
+    // Set payment status based on payment method
+    const paymentStatus = payment_method === 'ospay' ? 'pending' : 'unpaid';
+
     // Create order
     const insertOrder = db.prepare(`
-      INSERT INTO orders (user_id, total_amount, shipping_address, shipping_city, shipping_phone, status)
-      VALUES (?, ?, ?, ?, ?, 'pending')
+      INSERT INTO orders (user_id, total_amount, shipping_address, shipping_city, shipping_phone, status, payment_method, payment_status)
+      VALUES (?, ?, ?, ?, ?, 'pending', ?, ?)
     `);
-    const orderResult = insertOrder.run(userId, totalAmount, shipping_address, shipping_city, shipping_phone);
+    const orderResult = insertOrder.run(userId, totalAmount, shipping_address, shipping_city, shipping_phone, payment_method || 'cod', paymentStatus);
     const orderId = orderResult.lastInsertRowid;
 
     // Create order items
