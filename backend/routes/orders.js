@@ -15,7 +15,7 @@ const createOrderSchema = Joi.object({
   shipping_address: Joi.string().required(),
   shipping_city: Joi.string().required(),
   shipping_phone: Joi.string().required(),
-  payment_method: Joi.string().valid('cod', 'ospay', 'bank_transfer').optional().default('cod')
+  payment_method: Joi.string().valid('cod', 'bank_transfer').optional().default('cod')
 });
 
 // @route   GET /api/orders
@@ -130,7 +130,7 @@ router.post('/', authenticateToken, async (req, res) => {
     });
 
     // Set payment status based on payment method
-    const paymentStatus = payment_method === 'ospay' ? 'pending' : 'unpaid';
+    const paymentStatus = payment_method === 'bank_transfer' ? 'pending' : 'unpaid';
 
     // Create order
     const insertOrder = db.prepare(`

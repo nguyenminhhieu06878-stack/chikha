@@ -207,9 +207,8 @@ export const adminAPI = {
 
 // Payment API
 export const paymentAPI = {
-  createOSPayPayment: (data) => api.post('/payment/ospay/create', data),
-  getTransaction: (orderId) => api.get(`/payment/transaction/${orderId}`),
-  simulatePayment: (orderId, success = true) => api.post('/payment/ospay/simulate', { orderId, success })
+  simulateBankTransfer: (orderId, success = true) => api.post('/payment/bank-transfer/simulate', { orderId, success }),
+  getTransaction: (orderId) => api.get(`/payment/transaction/${orderId}`)
 };
 
 export default api;

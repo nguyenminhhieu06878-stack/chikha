@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { CreditCard, Truck, Shield, MapPin } from 'lucide-react';
-import { QRCodeSVG } from 'qrcode.react';
 import { useCart } from '../contexts/CartContext';
 import { ordersAPI, formatPrice, getProductImageUrl, addressesAPI, paymentAPI } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -14,8 +13,7 @@ const Checkout = () => {
   const [savedAddresses, setSavedAddresses] = useState([]);
   const [paymentMethod, setPaymentMethod] = useState('cod');
   const [pendingOrderId, setPendingOrderId] = useState(null);
-  const [paymentStatus, setPaymentStatus] = useState(null);
-  const [checkingPayment, setCheckingPayment] = useState(false);
+  const [showBankInfo, setShowBankInfo] = useState(false);
   const { cartItems, cartSummary, clearCart } = useCart();
   const navigate = useNavigate();
   
@@ -73,46 +71,6 @@ const Checkout = () => {
     }
   }, [cartItems, navigate]);
 
-  // Poll payment status when order is pending
-  useEffect(() => {
-    if (!pendingOrderId || paymentMethod !== 'ospay') return;
-
-    const checkPayment = async () => {
-      try {
-        setCheckingPayment(true);
-        const response = await paymentAPI.getTransaction(pendingOrderId);
-        
-        if (response.data.success) {
-          const { order, transaction } = response.data.data;
-          
-          if (order.payment_status === 'paid' && transaction?.status === 'success') {
-            setPaymentStatus('success');
-            await clearCart();
-            toast.success('Payment successful!');
-            setTimeout(() => {
-              navigate(`/orders/${pendingOrderId}`);
-            }, 1500);
-          } else if (order.payment_status === 'failed') {
-            setPaymentStatus('failed');
-            toast.error('Payment failed. Please try again.');
-          }
-        }
-      } catch (error) {
-        console.error('Error checking payment:', error);
-      } finally {
-        setCheckingPayment(false);
-      }
-    };
-
-    // Check immediately
-    checkPayment();
-
-    // Then poll every 3 seconds
-    const interval = setInterval(checkPayment, 3000);
-
-    return () => clearInterval(interval);
-  }, [pendingOrderId, paymentMethod, navigate, clearCart]);
-
   const onSubmit = async (data) => {
     setLoading(true);
     
@@ -138,15 +96,16 @@ const Checkout = () => {
       if (response.data.success) {
         const orderId = response.data.data.id;
         
-        // If payment method is OSPay, show QR and wait for payment
-        if (paymentMethod === 'ospay') {
+        // If payment method is Bank Transfer, show bank info
+        if (paymentMethod === 'bank_transfer') {
           setPendingOrderId(orderId);
-          toast.success('Order created! Please scan QR code to complete payment.');
+          setShowBankInfo(true);
+          toast.success('Order created! Please complete bank transfer.');
           setLoading(false);
           return;
         }
         
-        // For COD and Bank Transfer, clear cart and redirect to order detail
+        // For COD, clear cart and redirect to order detail
         await clearCart();
         toast.success('Order placed successfully!');
         navigate(`/orders/${orderId}`);
@@ -359,31 +318,14 @@ const Checkout = () => {
                 <label className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
                   <input
                     type="radio"
-                    value="ospay"
-                    checked={paymentMethod === 'ospay'}
-                    onChange={(e) => setPaymentMethod(e.target.value)}
-                    className="mr-3"
-                  />
-                  <div className="flex-1">
-                    <div className="font-medium flex items-center">
-                      <CreditCard className="w-4 h-4 mr-2" />
-                      OSPay (OneSPay)
-                    </div>
-                    <div className="text-sm text-gray-500">Pay online with credit/debit card or e-wallet</div>
-                  </div>
-                </label>
-
-                <label className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
-                  <input
-                    type="radio"
                     value="bank_transfer"
                     checked={paymentMethod === 'bank_transfer'}
                     onChange={(e) => setPaymentMethod(e.target.value)}
                     className="mr-3"
                   />
                   <div>
-                    <div className="font-medium">Bank Transfer</div>
-                    <div className="text-sm text-gray-500">Transfer to our bank account</div>
+                    <div className="font-medium">Bank Transfer (Demo)</div>
+                    <div className="text-sm text-gray-500">Transfer to our bank account - For demonstration only</div>
                   </div>
                 </label>
               </div>
@@ -461,110 +403,61 @@ const Checkout = () => {
                 </div>
               </div>
 
-              {/* OSPay QR Code */}
-              {paymentMethod === 'ospay' && pendingOrderId && (
-                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <div className="text-center">
-                    {paymentStatus === 'success' ? (
-                      <div className="text-green-600">
-                        <div className="text-2xl mb-2">✓</div>
-                        <p className="font-medium">Payment Successful!</p>
-                        <p className="text-sm">Redirecting...</p>
-                      </div>
-                    ) : paymentStatus === 'failed' ? (
-                      <div className="text-red-600">
-                        <div className="text-2xl mb-2">✗</div>
-                        <p className="font-medium">Payment Failed</p>
-                        <p className="text-sm">Please try again</p>
-                      </div>
-                    ) : (
-                      <>
-                        <p className="text-sm font-medium text-gray-700 mb-3">
-                          {checkingPayment ? 'Checking payment status...' : 'Scan QR Code to Pay'}
-                        </p>
-                        <div className="flex justify-center mb-3">
-                          <div className="bg-white p-3 rounded-lg">
-                            <QRCodeSVG 
-                              value={`OSPAY:ORDER:${pendingOrderId}:${cartSummary.total}:VND`}
-                              size={160}
-                              level="H"
-                              includeMargin={true}
-                            />
-                          </div>
-                        </div>
-                        <p className="text-xs text-gray-500">
-                          Order: #{pendingOrderId}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          Amount: {formatPrice(cartSummary.total)}
-                        </p>
-                        <p className="text-xs text-blue-600 mt-2 animate-pulse">
-                          Waiting for payment...
-                        </p>
-                        
-                        {/* Test buttons - Remove in production */}
-                        <div className="mt-4 pt-4 border-t border-blue-300">
-                          <p className="text-xs text-gray-500 mb-2">Test Payment (Development Only)</p>
-                          <div className="flex gap-2 justify-center">
-                            <button
-                              type="button"
-                              onClick={async () => {
-                                try {
-                                  await paymentAPI.simulatePayment(pendingOrderId, true);
-                                  toast.success('Payment simulated!');
-                                } catch (error) {
-                                  toast.error('Simulation failed');
-                                }
-                              }}
-                              className="px-3 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600"
-                            >
-                              Simulate Success
-                            </button>
-                            <button
-                              type="button"
-                              onClick={async () => {
-                                try {
-                                  await paymentAPI.simulatePayment(pendingOrderId, false);
-                                  toast.error('Payment failed!');
-                                } catch (error) {
-                                  toast.error('Simulation failed');
-                                }
-                              }}
-                              className="px-3 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600"
-                            >
-                              Simulate Failure
-                            </button>
-                          </div>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* OSPay QR Code Preview (before order created) */}
-              {paymentMethod === 'ospay' && !pendingOrderId && (
+              {/* Bank Transfer Info */}
+              {paymentMethod === 'bank_transfer' && showBankInfo && pendingOrderId && (
                 <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                   <div className="text-center">
                     <p className="text-sm font-medium text-gray-700 mb-3">
-                      Scan QR Code to Pay
+                      Bank Transfer Information (Demo)
                     </p>
-                    <div className="flex justify-center mb-3">
-                      <div className="bg-white p-3 rounded-lg">
-                        <QRCodeSVG 
-                          value={`OSPAY:${cartSummary.total}:VND`}
-                          size={160}
-                          level="H"
-                          includeMargin={true}
-                        />
+                    <div className="bg-white p-4 rounded-lg text-left space-y-2">
+                      <div>
+                        <span className="text-xs text-gray-500">Bank Name:</span>
+                        <p className="font-medium">Demo Bank</p>
+                      </div>
+                      <div>
+                        <span className="text-xs text-gray-500">Account Number:</span>
+                        <p className="font-medium">1234567890</p>
+                      </div>
+                      <div>
+                        <span className="text-xs text-gray-500">Account Name:</span>
+                        <p className="font-medium">E-Commerce Store</p>
+                      </div>
+                      <div>
+                        <span className="text-xs text-gray-500">Amount:</span>
+                        <p className="font-medium text-blue-600">{formatPrice(cartSummary.total)}</p>
+                      </div>
+                      <div>
+                        <span className="text-xs text-gray-500">Transfer Content:</span>
+                        <p className="font-medium">ORDER {pendingOrderId}</p>
                       </div>
                     </div>
-                    <p className="text-xs text-gray-500">
-                      Amount: {formatPrice(cartSummary.total)}
+                    <p className="text-xs text-gray-500 mt-3">
+                      Order: #{pendingOrderId}
                     </p>
-                    <p className="text-xs text-gray-400 mt-1">
-                      Click "Place Order" to generate payment QR
+                    <p className="text-xs text-orange-600 mt-2">
+                      ⚠️ This is a demo payment method for testing only
                     </p>
+                    
+                    {/* Demo payment button */}
+                    <div className="mt-4 pt-4 border-t border-blue-300">
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          try {
+                            await paymentAPI.simulateBankTransfer(pendingOrderId, true);
+                            await clearCart();
+                            toast.success('Payment completed (Demo)!');
+                            navigate(`/orders/${pendingOrderId}`);
+                          } catch (error) {
+                            toast.error('Payment simulation failed');
+                          }
+                        }}
+                        className="w-full px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+                      >
+                        Complete Payment (Demo)
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -572,15 +465,13 @@ const Checkout = () => {
               {/* Place Order Button */}
               <button
                 type="submit"
-                disabled={loading || (paymentMethod === 'ospay' && pendingOrderId)}
+                disabled={loading || (paymentMethod === 'bank_transfer' && showBankInfo)}
                 className="btn-primary w-full mt-6 py-3 disabled:opacity-50"
               >
                 {loading ? (
                   <div className="loading-spinner mx-auto"></div>
-                ) : pendingOrderId && paymentMethod === 'ospay' ? (
-                  checkingPayment ? 'Checking Payment...' : 'Waiting for Payment...'
-                ) : paymentMethod === 'ospay' ? (
-                  'Place Order & Show QR'
+                ) : showBankInfo && paymentMethod === 'bank_transfer' ? (
+                  'Waiting for Payment...'
                 ) : (
                   'Place Order'
                 )}

@@ -239,7 +239,7 @@ const Register = () => {
           {/* Google Sign In */}
           <div>
             <a
-              href={`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/auth/google`}
+              href={`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/auth/google`}
               className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
             >
               <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
