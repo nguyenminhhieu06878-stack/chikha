@@ -15,7 +15,7 @@ const createOrderSchema = Joi.object({
   shipping_address: Joi.string().required(),
   shipping_city: Joi.string().required(),
   shipping_phone: Joi.string().required(),
-  payment_method: Joi.string().valid('cod', 'bank_transfer').optional().default('cod')
+  payment_method: Joi.string().valid('cod', 'bank_transfer', 'payos').optional().default('cod')
 });
 
 // @route   GET /api/orders
@@ -130,7 +130,8 @@ router.post('/', authenticateToken, async (req, res) => {
     });
 
     // Set payment status based on payment method
-    const paymentStatus = payment_method === 'bank_transfer' ? 'pending' : 'unpaid';
+    const paymentStatus = payment_method === 'payos' ? 'pending' : 
+                         payment_method === 'bank_transfer' ? 'pending' : 'unpaid';
 
     // Create order
     const insertOrder = db.prepare(`
@@ -213,6 +214,60 @@ router.put('/:id/status', authenticateToken, requireAdmin, async (req, res) => {
 
   } catch (error) {
     console.error('Update order status error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error'
+    });
+  }
+});
+
+// @route   POST /api/orders/:id/cancel
+// @desc    Cancel order (User can only cancel pending orders)
+// @access  Private
+router.post('/:id/cancel', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    // Get order and verify ownership
+    const order = db.prepare('SELECT * FROM orders WHERE id = ? AND user_id = ?').get(id, userId);
+    
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        error: 'Order not found'
+      });
+    }
+
+    // Only allow cancelling pending orders
+    if (order.status !== 'pending') {
+      return res.status(400).json({
+        success: false,
+        error: 'Only pending orders can be cancelled'
+      });
+    }
+
+    // Update order status to cancelled
+    db.prepare('UPDATE orders SET status = ?, payment_status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
+      .run('cancelled', 'cancelled', id);
+
+    // Restore product stock
+    const orderItems = db.prepare('SELECT product_id, quantity FROM order_items WHERE order_id = ?').all(id);
+    orderItems.forEach(item => {
+      db.prepare('UPDATE products SET stock_quantity = stock_quantity + ? WHERE id = ?')
+        .run(item.quantity, item.product_id);
+    });
+
+    const updatedOrder = db.prepare('SELECT * FROM orders WHERE id = ?').get(id);
+
+    res.json({
+      success: true,
+      data: updatedOrder,
+      message: 'Order cancelled successfully'
+    });
+
+  } catch (error) {
+    console.error('Cancel order error:', error);
     res.status(500).json({
       success: false,
       error: 'Server error'

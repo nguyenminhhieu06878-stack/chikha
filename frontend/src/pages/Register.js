@@ -236,7 +236,8 @@ const Register = () => {
             </div>
           </div>
 
-          {/* Google Sign In */}
+          {/* Google Sign In - Disabled */}
+          {false && (
           <div>
             <a
               href={`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/auth/google`}
@@ -263,6 +264,7 @@ const Register = () => {
               Sign up with Google
             </a>
           </div>
+          )}
         </form>
       </div>
     </div>

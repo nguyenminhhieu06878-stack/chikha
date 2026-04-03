@@ -1,10 +1,11 @@
+require('dotenv').config(); // Load env first
+
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const session = require('express-session');
 const passport = require('./config/passport');
-require('dotenv').config();
 
 // Initialize database
 const { initDatabase } = require('./config/database');
@@ -45,6 +46,9 @@ const notFound = require('./middleware/notFound');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// Ignore favicon requests to prevent 500 errors
+app.get('/favicon.ico', (req, res) => res.status(204).end());
 
 // Serve static files (uploaded images)
 app.use('/uploads', express.static('public/uploads'));

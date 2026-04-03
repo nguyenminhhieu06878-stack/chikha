@@ -20,7 +20,7 @@ import Wishlist from './pages/Wishlist';
 import Addresses from './pages/Addresses';
 import AuthCallback from './pages/AuthCallback';
 import PaymentSuccess from './pages/PaymentSuccess';
-import PaymentFailed from './pages/PaymentFailed';
+import PaymentCancel from './pages/PaymentCancel';
 import ProtectedRoute from './components/ProtectedRoute';
 
 // Admin Pages
@@ -50,8 +50,8 @@ function App() {
           <Route path="/login" element={<Layout><Login /></Layout>} />
           <Route path="/register" element={<Layout><Register /></Layout>} />
           <Route path="/auth/callback" element={<AuthCallback />} />
-          <Route path="/payment/success" element={<PaymentSuccess />} />
-          <Route path="/payment/failed" element={<PaymentFailed />} />
+          <Route path="/payment/success" element={<Layout><PaymentSuccess /></Layout>} />
+          <Route path="/payment/cancel" element={<Layout><PaymentCancel /></Layout>} />
           
           {/* Protected Customer Routes */}
           <Route path="/cart" element={

@@ -160,7 +160,8 @@ const Login = () => {
             </div>
           </div>
 
-          {/* Google Sign In */}
+          {/* Google Sign In - Disabled */}
+          {false && (
           <div>
             <a
               href={`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/auth/google`}
@@ -187,6 +188,7 @@ const Login = () => {
               Sign in with Google
             </a>
           </div>
+          )}
         </form>
       </div>
     </div>

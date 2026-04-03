@@ -25,6 +25,7 @@
   "license": "MIT",
   "dependencies": {
     "@elastic/elasticsearch": "^8.11.0",
+    "@payos/node": "^2.0.5",
     "@supabase/supabase-js": "^2.38.4",
     "axios": "^1.6.2",
     "bcryptjs": "^2.4.3",

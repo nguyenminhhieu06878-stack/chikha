@@ -84,7 +84,7 @@ export const ordersAPI = {
   getOrder: (id) => api.get(`/orders/${id}`),
   createOrder: (data) => api.post('/orders', data),
   updateOrderStatus: (id, data) => api.put(`/orders/${id}/status`, data),
-  cancelOrder: (id) => api.delete(`/orders/${id}`),
+  cancelOrder: (id) => api.post(`/orders/${id}/cancel`),
   getOrderStats: (params) => api.get('/orders/stats/summary', { params }),
 };
 
@@ -207,6 +207,9 @@ export const adminAPI = {
 
 // Payment API
 export const paymentAPI = {
+  createPayOSPayment: (orderId) => api.post('/payment/payos/create', { orderId }),
+  getPayOSStatus: (orderId) => api.get(`/payment/payos/status/${orderId}`),
+  cancelPayOSPayment: (orderId, reason) => api.post(`/payment/payos/cancel/${orderId}`, { reason }),
   simulateBankTransfer: (orderId, success = true) => api.post('/payment/bank-transfer/simulate', { orderId, success }),
   getTransaction: (orderId) => api.get(`/payment/transaction/${orderId}`)
 };
